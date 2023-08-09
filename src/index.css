@@ -57,3 +57,8 @@
 	font-weight: 700;
 	font-style: italic;
 }
+
+button.react-multiple-carousel__arrow{
+	background-color: black;
+	opacity: .5;
+}

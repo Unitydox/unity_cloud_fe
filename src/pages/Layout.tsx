@@ -4,13 +4,13 @@ import { Outlet } from 'react-router-dom';
 
 function Layout() {
 	return (
-		<div className='h-screen'>
+		<div className='flex h-screen flex-col'>
 			<Header />
 
-			<div className="flex h-full">
+			<div className="flex flex-1 overflow-hidden">
 				<SideNav />
 
-				<main className='p-4'>
+				<main className='w-full flex-1 overflow-y-auto p-4'>
 					<Outlet /> 
 				</main>
 			</div>

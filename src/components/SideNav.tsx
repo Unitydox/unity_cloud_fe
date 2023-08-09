@@ -111,7 +111,7 @@ function SideNav() {
 	};
 
 	return (
-		<Card className="h-full w-full max-w-[20rem] rounded-none" shadow={false}>
+		<Card className="w-full max-w-[18rem] overflow-y-auto rounded-none" shadow={false}>
 			<List>{renderMenuItems(menuItems)}</List>
 		</Card>
 	);

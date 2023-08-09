@@ -19,6 +19,7 @@ import {
 import { faPhone } from "@fortawesome/free-solid-svg-icons";
 import Logo from "../public/full_logo.svg";
 import LoginDesk from "../public/login-desk-dummy.png";
+import { useAuth } from "hooks/useAuth";
 
 // Uncomment the following lines when you are ready to use Firebase
 // import firebase from 'firebase/app';
@@ -36,6 +37,8 @@ import LoginDesk from "../public/login-desk-dummy.png";
 const LoginPage: React.FC = () => {
 	const navigate = useNavigate();
 
+	const { login } = useAuth();
+
 	const [formData, setFormData] = useState<{ email: string; password: string }>(
 		{ email: "", password: "" },
 	);
@@ -45,9 +48,16 @@ const LoginPage: React.FC = () => {
 		setFormData({ ...formData, [name]: value });
 	};
 
-	const handleLoginFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleLoginFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		navigate("/app");
+
+		const login_result = await login(formData);
+
+		if(login_result?.status){
+			navigate("/app/photos");
+		}else{
+			console.log({login_result});
+		}
 		// Uncomment the following lines when you are ready to use Firebase
 		// firebase.auth().signInWithEmailAndPassword(formData.email, formData.password);
 	};
