@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
 	Navbar,
 	Typography,
@@ -11,13 +12,44 @@ import {
 import { faCog, faUpload, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { toast } from "react-hot-toast";
 import Logo from "../public/full_logo.svg";
 import Avatar from "./Avatar";
 import { useAuth } from "hooks/useAuth";
+import { uploadImage } from "services/photoService";
 
 function Header() {
+	const inputFileRef = useRef(null);
 
 	const { logout } = useAuth();
+
+	const imageUpload = async (event: any) => {
+		console.log({ event });
+		const file = event.target.files[0];
+
+		if (!file.type.startsWith("image/")) {
+			toast.error("Only Images can be uploaded!");
+			return;
+		}
+
+		const formData = new FormData();
+
+		formData.append("file", file);
+
+		const fileUploadToast = toast.loading('Uploading...');
+
+		const response = await uploadImage(formData);
+
+		if (response.status) {
+			toast.success('File uploaded', { id: fileUploadToast })
+		}else{
+			toast.error('Error in file upload', { id: fileUploadToast })
+		}
+
+		toast.dismiss(fileUploadToast);
+		
+		inputFileRef.current.value = null;
+	};
 
 	return (
 		<Navbar className="relative z-10 h-auto !max-w-full px-4 py-3">
@@ -39,7 +71,19 @@ function Header() {
 					</div>
 				</div>
 				<div className="flex gap-1 md:mr-4">
-					<Button variant="text" className="flex items-center gap-3 !px-2">
+					<input
+						name="upload"
+						accept="image/png, image/jpeg"
+						type="file"
+						className="hidden"
+						onChange={imageUpload}
+						ref={inputFileRef}
+					/>
+					<Button
+						variant="text"
+						className="flex items-center gap-3 !px-2"
+						onClick={(e) => inputFileRef.current.click()}
+					>
 						<FontAwesomeIcon size="2x" icon={faUpload} />
 						Upload
 					</Button>

@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import ImageCard from "components/ImageCard";
 import { Typography } from "@material-tailwind/react";
-import axios from "axios";
+// import axios from "axios";
 import { useLoading } from "contexts/LoadingContext";
 import Carousel from "react-multi-carousel";
+import { fetchImages } from "services/photoService";
 
 interface image_data {
 	date: string;
@@ -19,17 +20,30 @@ const PhotosGallery = () => {
 
 	useEffect(() => {
 		setLoading(true);
-		axios
-			.get("https://picsum.photos/v2/list?page=1&limit=10")
+
+		fetchImages()
 			.then((res) => {
+				console.log({ res });
 				setImageData([
 					{
 						date: "Today",
-						images: res.data.map((i) => i.download_url),
+						images: res.data.map((i) => i.file_temp_url),
 					},
 				]);
 			})
 			.finally(() => setLoading(false));
+
+		// axios
+		// 	.get("https://picsum.photos/v2/list?page=1&limit=10")
+		// 	.then((res) => {
+		// 		setImageData([
+		// 			{
+		// 				date: "Today",
+		// 				images: res.data.map((i) => i.download_url),
+		// 			},
+		// 		]);
+		// 	})
+		// 	.finally(() => setLoading(false));
 	}, []);
 
 	return (
