@@ -1,4 +1,7 @@
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { selectMenu } from '../features/sideMenu/sideMenuSlice';
 import {
 	Navbar,
 	Typography,
@@ -13,18 +16,32 @@ import { faCog, faUpload, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-hot-toast";
-import Logo from "../public/full_logo.svg";
+import { useFileUploadContext } from "contexts/FileUploadContext";
+import FullLogo from "../public/full_logo.svg";
+import Logo from "../public/logo.svg"
 import Avatar from "./Avatar";
 import { useAuth } from "hooks/useAuth";
 import { uploadImage } from "services/photoService";
 
 function Header() {
+	const navigate = useNavigate();
+
+	const dispatch = useDispatch();
+
 	const inputFileRef = useRef(null);
+
+	const { setUploadedFile } = useFileUploadContext();
+	// const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 	const { logout } = useAuth();
 
+	const redirectToHome = () => {
+		navigate("/app/photos");
+		dispatch(selectMenu('0'));
+	}
+
 	const imageUpload = async (event: any) => {
-		console.log({ event });
+		
 		const file = event.target.files[0];
 
 		if (!file.type.startsWith("image/")) {
@@ -41,12 +58,15 @@ function Header() {
 		const response = await uploadImage(formData);
 
 		if (response.status) {
-			toast.success('File uploaded', { id: fileUploadToast })
+			setUploadedFile(file);
+			
+			toast.success('File uploaded', { id: fileUploadToast, duration: 3000 })
 		}else{
-			toast.error('Error in file upload', { id: fileUploadToast })
+			toast.error('Error in file upload', { id: fileUploadToast, duration: 3000 })
 		}
 
 		toast.dismiss(fileUploadToast);
+		// setUploadedFile(null);
 		
 		inputFileRef.current.value = null;
 	};
@@ -54,8 +74,9 @@ function Header() {
 	return (
 		<Navbar className="relative z-10 h-auto !max-w-full px-4 py-3">
 			<div className="flex flex-wrap items-center justify-between gap-y-4 text-blue-gray-900">
-				<img src={Logo} alt="logo-picture" />
-				<div className="relative flex w-2/5 gap-2">
+				<img src={Logo} alt="logo-picture" className="block cursor-pointer sm:hidden" onClick={redirectToHome} />
+				<img src={FullLogo} alt="logo-picture" className="hidden cursor-pointer sm:block" onClick={redirectToHome} />
+				<div className="relative flex hidden w-2/5 gap-2 md:block">
 					<div className="flex w-full flex-row items-center rounded-lg border-b-2 border-gray-400 bg-gray-200 shadow-lg">
 						<FontAwesomeIcon className="px-4" icon={faSearch} />
 						<Input
@@ -90,9 +111,9 @@ function Header() {
 					<Button variant="text" className="flex items-center gap-3 !px-2">
 						<FontAwesomeIcon size="2x" icon={faQuestionCircle} />
 					</Button>
-					<Button variant="text" className="flex items-center gap-3 !px-2">
+					{/* <Button variant="text" className="flex items-center gap-3 !px-2">
 						<FontAwesomeIcon size="2x" icon={faCog} />
-					</Button>
+					</Button> */}
 					<Menu>
 						<MenuHandler>
 							<Button

@@ -1,20 +1,24 @@
+import { Outlet } from 'react-router-dom';
+import { FileUploadProvider } from 'contexts/FileUploadContext';
 import Header from '../components/Header';
 import SideNav from '../components/SideNav'
-import { Outlet } from 'react-router-dom';
 
 function Layout() {
+
 	return (
-		<div className='flex h-screen flex-col'>
-			<Header />
+		<FileUploadProvider>
+			<div className='flex h-screen flex-col'>
+				<Header />
 
-			<div className="flex flex-1 overflow-hidden">
-				<SideNav />
+				<div className="flex flex-1 overflow-hidden">
+					<SideNav />
 
-				<main className='w-full flex-1 overflow-y-auto p-4'>
-					<Outlet /> 
-				</main>
+					<main className='w-full flex-1 overflow-y-auto p-4'>
+						<Outlet /> 
+					</main>
+				</div>
 			</div>
-		</div>
+		</FileUploadProvider>
 	)
 }
 

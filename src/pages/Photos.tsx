@@ -1,129 +1,170 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ImageCard from "components/ImageCard";
 import { Typography } from "@material-tailwind/react";
 // import axios from "axios";
 import { useLoading } from "contexts/LoadingContext";
-import Carousel from "react-multi-carousel";
-import { fetchImages } from "services/photoService";
+import { useFileUploadContext } from "contexts/FileUploadContext";
+import {
+	fetchImages,
+	getDistinctDates,
+} from "services/photoService"; // Adjust this import
+
+interface all_dates {
+	date: string;
+	formatted_date: string;
+	images?: Map<string, image_data>; // Use a map for images
+}
 
 interface image_data {
-	date: string;
-	images: string[];
+	id: number;
+	uuid: string;
+	original_file_name: string;
+	file_temp_url: string;
+	thumbnail_url: string;
+	status: string;
+	favourite: number;
+	metadata: any;
+	temp_url_expiry: Date;
 }
 
 const PhotosGallery = () => {
+	const location = useLocation();
+
 	const { setLoading } = useLoading();
+	const { uploadedFile } = useFileUploadContext();
 
-	const [imageData, setImageData] = useState<image_data[]>();
-
-	// const containers = useRef([]);
+	const [imageDataMap, setImageDataMap] = useState<Map<string, all_dates>>(
+		new Map(),
+	);
+	const [days, setDays] = useState<all_dates[]>([]);
+	const [type, setType] = useState(location.state?.type || "");
 
 	useEffect(() => {
+		setType(location.state?.type || "");
+		fetchDistinctDates();
+	}, [location.state?.type]);
+
+	const fetchDistinctDates = () => {
 		setLoading(true);
 
-		fetchImages()
+		setImageDataMap(new Map());
+		setDays([]);
+
+		getDistinctDates({
+			type: location.state?.type,
+			status: location.state?.type,
+		})
 			.then((res) => {
-				console.log({ res });
-				setImageData([
-					{
-						date: "Today",
-						images: res.data.map((i) => i.file_temp_url),
-					},
-				]);
+				setDays(
+					res.data.map((d: { created_at: string; formatted_date: string }) => ({
+						date: d.created_at,
+						formatted_date: d.formatted_date,
+					})),
+				);
 			})
 			.finally(() => setLoading(false));
+	};
 
-		// axios
-		// 	.get("https://picsum.photos/v2/list?page=1&limit=10")
-		// 	.then((res) => {
-		// 		setImageData([
-		// 			{
-		// 				date: "Today",
-		// 				images: res.data.map((i) => i.download_url),
-		// 			},
-		// 		]);
-		// 	})
-		// 	.finally(() => setLoading(false));
-	}, []);
+	useEffect(() => {
+		if (days.length > 0) {
+			for (const day of days) {
+				fetchAndPushImages(day);
+			}
+		} else {
+			setLoading(false);
+		}
+	}, [days]);
+
+	const fetchAndPushImages = (day: all_dates) => {
+		fetchImages({
+			type: location.state?.type,
+			status: location.state?.type,
+			date: day.formatted_date,
+		})
+			.then((res) => {
+				setLoading(false);
+
+				if (res.data.length) {
+					const imagesMap = new Map<string, image_data>();
+					for (const img of res.data) {
+						imagesMap.set(img.uuid, img);
+					}
+
+					setImageDataMap((prevMap) => {
+						const newMap = new Map(prevMap);
+						newMap.set(day.formatted_date, {
+							...day,
+							images: imagesMap,
+						});
+						return newMap;
+					});
+				}
+			})
+			.finally(() => setLoading(false));
+	};
+
+	useEffect(() => {
+		if (uploadedFile) {
+			fetchDistinctDates();
+		}
+	}, [uploadedFile]);
+
+	const onStatusChange = async (formattedDate: string, uuid: string) => {
+		setLoading(true);
+
+		setImageDataMap((prevMap) => {
+			const newMap = new Map(prevMap);
+			const dateData = newMap.get(formattedDate);
+			if (dateData) {
+				const imagesMap = dateData.images || new Map();
+				imagesMap.delete(uuid);
+				newMap.set(formattedDate, {
+					...dateData,
+					images: imagesMap,
+				});
+			}
+			return newMap;
+		});
+
+		setLoading(false);
+	};
+
+	const onLikesChange = () => {
+		if (type === "favourites") {
+			fetchDistinctDates();
+		}
+	};
 
 	return (
 		<section>
-			{imageData &&
-				imageData.map((item, index) => (
-					<div key={index}>
-						<Typography variant="h4" color="blue">
-							{item.date}
-						</Typography>
-						<div className="flex overflow-hidden">
-							{/* <div
-								className="flex gap-4 overflow-x-hidden p-4"
+			{Array.from(imageDataMap.entries()).map(([formattedDate, day]) => (
+				(day.images && day.images.size > 0) &&
+				<div key={formattedDate}>
+					<Typography variant="h4" color="blue">
+						{day.date}
+					</Typography>
+					<div className="flex flex-wrap">
+						{Array.from(day.images?.values() || []).map((img) => (
+							<div
+								className="relative w-1/2 overflow-hidden rounded p-2 text-center md:w-1/3 xl:w-1/5 2xl:w-1/6"
+								key={img.uuid}
 							>
-								{item.images &&
-									item.images.map((img, img_index) => (
-										<ImageCard src={img} key={index + "-" + img_index} />
-									))}
-							</div> */}
-							<Carousel
-								additionalTransfrom={0}
-								arrows
-								autoPlaySpeed={3000}
-								centerMode={false}
-								className=""
-								containerClass="container"
-								dotListClass=""
-								draggable
-								focusOnSelect={false}
-								infinite={false}
-								itemClass=""
-								keyBoardControl
-								minimumTouchDrag={80}
-								pauseOnHover
-								renderArrowsWhenDisabled={false}
-								renderButtonGroupOutside={false}
-								renderDotsOutside={false}
-								responsive={{
-									desktop: {
-										breakpoint: {
-											max: 3000,
-											min: 1024,
-										},
-										items: 5,
-										partialVisibilityGutter: 40,
-									},
-									mobile: {
-										breakpoint: {
-											max: 464,
-											min: 0,
-										},
-										items: 1,
-										partialVisibilityGutter: 30,
-									},
-									tablet: {
-										breakpoint: {
-											max: 1024,
-											min: 464,
-										},
-										items: 2,
-										partialVisibilityGutter: 30,
-									},
-								}}
-								rewind={false}
-								rewindWithAnimation={false}
-								rtl={false}
-								shouldResetAutoplay
-								showDots={false}
-								sliderClass=""
-								slidesToSlide={2}
-								swipeable
-							>
-								{item.images &&
-									item.images.map((img, img_index) => (
-										<ImageCard src={img} key={index + "-" + img_index} />
-									))}
-							</Carousel>
-						</div>
+								<ImageCard
+									src={img.thumbnail_url}
+									full_url={img.file_temp_url}
+									photo_id={img.uuid}
+									photo_primary_id={img.id}
+									isFavourite={img.favourite === 1}
+									viewType={type}
+									onLikeChange={onLikesChange}
+									onStatusChange={() => onStatusChange(formattedDate, img.uuid)}
+								/>
+							</div>
+						))}
 					</div>
-				))}
+				</div>
+			))}
 		</section>
 	);
 };

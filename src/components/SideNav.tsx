@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux' 
+import { selectMenu } from '../features/sideMenu/sideMenuSlice'
 import {
 	Card,
 	Typography,
@@ -11,6 +13,7 @@ import {
 	Accordion,
 	AccordionHeader,
 	AccordionBody,
+	Tooltip,
 } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,54 +21,67 @@ import {
 	faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 
+import {
+	AlbumIcon,
+	ArchiveIcon,
+	PhotosIcon,
+	SearchIcon,
+	SharingIcon,
+	StarIcon,
+	TrashIcon,
+	UtilitiesIcon,
+} from "../components/icons";
 
-import photo from '../public/photos.svg';
-import albums from '../public/albums.svg';
-import archive from '../public/archive.svg';
-import sharing from '../public/sharing.svg';
-import trash from '../public/trash.svg';
-import utilities from '../public/utilities.svg';
-import star from '../public/star.svg';
-import search from '../public/search.svg';
-
+interface IconProps {
+	size?: number;
+	color?: string;
+	className?: string;
+}
 interface MenuItem {
 	name: string;
-	icon?: string;
+	icon?: React.ComponentType<IconProps>;
 	route?: string;
+	state?: any;
 	children?: MenuItem[];
 }
 
 const menuItems: MenuItem[] = [
-	{ name: "Photos", icon: photo, route: "/app/photos" },
-	{ name: "Explore", icon: search, route: "/app/explore" },
-	{ name: "Sharing", icon: sharing, route: "/app/sharing" },
-	{ name: "Favourites", icon: star, route: "/app/favourites" },
-	{ name: "Albums", icon: albums, route: "/app/albums" },
-	{ name: "Utilities", icon: utilities, route: "/app/utilities" },
-	{ name: "Archive", icon: archive, route: "/app/archive" },
-	{ name: "Bin", icon: trash, route: "/app/Bin" },
+	{ name: "Photos", icon: PhotosIcon, route: "/app/photos", state: { type: '' } },
+	// { name: "Explore", icon: SearchIcon, route: "/app/explore" },
+	{ name: "Sharing", icon: SharingIcon, route: "/app/sharing" },
+	{ name: "Favourites", icon: StarIcon, route: "/app/photos?type=favourites", state: { type: 'favourites' } },
+	{ name: "Albums", icon: AlbumIcon, route: "/app/albums" },
+	// { name: "Utilities", icon: UtilitiesIcon, route: "/app/utilities" },
+	{ name: "Archive", icon: ArchiveIcon, route: "/app/photos?type=archive", state: { type: 'archive' } },
+	{ name: "Bin", icon: TrashIcon, route: "/app/photos?type=delete", state: { type: 'delete' } },
 ];
 
 function SideNav() {
 	const navigate = useNavigate();
 
-	const [open, setOpen] = useState<string>('');
+	const dispatch = useDispatch();
+	const selected_menu = useSelector(state => state.sideMenu.selected);
 
-	useEffect(() => console.log(open), [open])
+	// const [open, setOpen] = useState<string>("");
 
-	const handleOpen = (value: number, parent_index: number, route: string) => {
-		const open_index = (parent_index > -1) ? `${value}-${parent_index}` : `${value}`;
+	useEffect(() => console.log(selected_menu), [selected_menu]);
 
-		setOpen(open_index);
+	const handleOpen = (value: number, parent_index: number, menu: MenuItem) => {
+		const open_index =
+			parent_index > -1 ? `${value}-${parent_index}` : `${value}`;
 
-		navigate(route);
+		// setOpen(open_index);
+		dispatch(selectMenu(open_index));
+
+		menu.route && navigate(menu.route, { state: menu.state });
 	};
 
 	const isOpen = (value: number, parent_index: number) => {
-		const open_index = (parent_index > -1) ? `${value}-${parent_index}` : `${value}`;
+		const open_index =
+			parent_index > -1 ? `${value}-${parent_index}` : `${value}`;
 
-		return open === open_index;
-	}
+		return selected_menu === open_index;
+	};
 
 	const renderMenuItems = (items: MenuItem[], parent_index: number = -1) => {
 		return items.map((item, index) => (
@@ -73,30 +89,47 @@ function SideNav() {
 				key={index}
 				open={isOpen(index, parent_index)}
 				icon={
-					item.children &&
-					<FontAwesomeIcon
-						icon={isOpen(index, parent_index) ? faChevronDown : faChevronRight}
-						className={`mx-auto h-4 w-4 transition-transform ${
-							isOpen(index, parent_index) ? "rotate-180" : ""
-						}`}
-					/>
+					item.children && (
+						<Tooltip content={item.name}>
+							<FontAwesomeIcon
+								icon={
+									isOpen(index, parent_index) ? faChevronDown : faChevronRight
+								}
+								className={`mx-auto h-4 w-4 transition-transform ${
+									isOpen(index, parent_index) ? "rotate-180" : ""
+								}`}
+							/>
+						</Tooltip>
+					)
 				}
 			>
-				<ListItem 
-					className={`rounded-r-full p-0 hover:bg-blue-200 hover:text-blue-200 focus:bg-blue-200 focus:text-blue-200 active:bg-blue-200 active:text-blue-200 ${(isOpen(index, parent_index) ? 'bg-blue-200 text-blue-200' : '')}`}
+				<ListItem
+					className={`rounded-r-full p-0 hover:bg-blue-200 hover:text-blue-200 focus:bg-blue-200 focus:text-blue-200 active:bg-blue-200 active:text-blue-200 ${
+						isOpen(index, parent_index) ? "bg-blue-200 text-blue-200" : ""
+					}`}
 					selected={isOpen(index, parent_index)}
 				>
 					<AccordionHeader
-						onClick={() => handleOpen(index, parent_index, item.route)}
+						onClick={() => handleOpen(index, parent_index, item)}
 						className="border-b-0 p-3"
-					>	
-						{
-							item?.icon &&  
+					>
+						{item?.icon && (
 							<ListItemPrefix>
-								<img src={item.icon} alt="logo" className="h-5 w-5" />
+								<item.icon
+									className={
+										isOpen(index, parent_index)
+											? "fill-blue-300"
+											: "fill-blue-500"
+									}
+								/>
 							</ListItemPrefix>
-						}
-						<Typography color="blue-gray" className="mr-auto font-normal">
+						)}
+						<Typography
+							color="blue-gray"
+							className={`mr-auto hidden font-normal md:block ${
+								isOpen(index, parent_index) ? "text-blue-300" : ""
+							}`}
+						>
 							{item.name}
 						</Typography>
 					</AccordionHeader>
@@ -111,8 +144,11 @@ function SideNav() {
 	};
 
 	return (
-		<Card className="w-full max-w-[18rem] overflow-y-auto rounded-none" shadow={false}>
-			<List>{renderMenuItems(menuItems)}</List>
+		<Card
+			className="w-full max-w-[4rem] overflow-y-auto rounded-none px-0 md:max-w-[18rem] md:pe-2"
+			shadow={false}
+		>
+			<List className="w-full min-w-full ps-0	">{renderMenuItems(menuItems)}</List>
 		</Card>
 	);
 }

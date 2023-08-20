@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import Login from "./pages/Login";
+import VerifyUser from "components/VerifyUser";
+import LoginPage from "./pages/LoginPage";
+import Login from "components/Login";
+import Register from "components/Register";
 import Layout from "./pages/Layout";
 import PageNotFound from "components/PageNotFound";
 import FullScreenLoader from "components/FullScreenLoader";
@@ -11,7 +14,7 @@ function App() {
 	return (
 		<>
 			<Toaster 
-				position="top-right"
+				position="bottom-right"
 				toastOptions={{
 					duration: 3000,
 					className: 'font-sans'
@@ -21,8 +24,12 @@ function App() {
 			<Router>
 				<Suspense fallback={<FullScreenLoader />}>
 					<Routes>
-						<Route path="/" element={<Login />} />
-						<Route path="/login" element={<Login />} />
+						<Route path="/" element={<VerifyUser />} />
+						<Route path="/user" element={<LoginPage />} >
+							<Route path="/user/login" element={<Login />} />
+							<Route path="/user/register" element={<Register />} />
+							<Route path="/user" element={<Login />} />
+						</Route>
 
 						<Route path="/app" element={<Layout />}>
 							<Route path="/app/home" element={<Home />} />

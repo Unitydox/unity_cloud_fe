@@ -3,6 +3,7 @@ const withMT = require('@material-tailwind/react/utils/withMT');
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = withMT({
+  darkMode: 'class',
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -12,11 +13,11 @@ module.exports = withMT({
       colors: {
         primary: '#2E3192',
         secondary: '#F7941D',
-        "blue": {
+        blue: {
           "50": "#eaeaf4",
           "100": "#d5d6e9",
           "200": "#E8F0FE",
-          "300": "#8283be",
+          "300": "#1A73E8",
           "400": "#585aa8",
           "500": "#2e3192",
           "600": "#252775",
@@ -24,7 +25,7 @@ module.exports = withMT({
           "800": "#12143a",
           "900": "#090a1d"
         },
-        "orange": {
+        orange: {
           "50": "#fef4e8",
           "100": "#fdead2",
           "200": "#fcd4a5",
