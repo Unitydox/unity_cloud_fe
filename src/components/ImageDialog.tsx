@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Button,
 	Dialog,
@@ -7,6 +7,7 @@ import {
 	DialogFooter,
 	IconButton,
 	Typography,
+	Spinner,
 } from "@material-tailwind/react";
 import AddToAlbum from "./AddToAlbum";
 import HeartIcon from "./icons/HeartIcon";
@@ -17,6 +18,8 @@ import {
 	InformationCircleIcon,
 	PlusIcon,
 } from "@heroicons/react/24/outline";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import { getSignedUrl } from "services/photoService";
 
 interface ImageDialogProps {
 	open: boolean;
@@ -38,6 +41,11 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 	onImageLiked,
 }) => {
 	const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState<boolean>(false);
+	const [imageSrc, setImageSrc] = useState<string>(imgUrl);
+
+	useEffect(() => {
+		setImageSrc(imgUrl);
+	}, [imgUrl])
 
 	const onFavChanged = () => {
 		isLiked = !isLiked;
@@ -53,6 +61,17 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 	const addToAlbum = () => {
 		setIsAlbumDialogOpen(true);
 	};
+
+	const handleImageError = () => {
+		getSignedUrl({
+			img_id: photo_primary_id,
+			type: 'main'
+		}).then((res) => {
+			if(res?.data){
+				setImageSrc(res.data);
+			}
+		})
+	}
 
 	return (
 		<>
@@ -92,11 +111,22 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 					divider={true}
 					className="flex h-full flex-row items-center justify-center border-b-0 border-none p-0"
 				>
-					<img
+					<LazyLoadImage
+						src={imageSrc}
+						alt={`Image Alt`}
+						className={`h-[calc(100vh-5rem)] object-cover object-center`}
+						height="calc(100vh-5rem)"
+						threshold={500}
+						onError={handleImageError}
+						effect="blur"
+						// delayTime={20000}
+						placeholder={<Spinner />}
+					/>
+					{/* <img
 						alt="nature"
 						className="h-[calc(100vh-5rem)] object-cover object-center"
 						src={imgUrl}
-					/>
+					/> */}
 
 					<AddToAlbum
 						open={isAlbumDialogOpen}

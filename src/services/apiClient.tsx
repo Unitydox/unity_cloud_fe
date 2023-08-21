@@ -20,21 +20,22 @@ const refreshAccessToken = async () => {
 	const user_data = localStorage.getItem("user");
 
 	if (!user_data) clearAndLogout();
-
-	const parsed_data = JSON.parse(user_data);
-	const refreshToken = parsed_data.tokens.refresh.token;
-
-	const response = await axios.post(
-		`${config.api_url}/users/refresh-token`,
-		{
-			refresh_token: refreshToken,
-		},
-	);
-
-	if(!response?.status) clearAndLogout();
-
-	const newAccessToken = response.data;
-	return newAccessToken;
+	else{
+		const parsed_data = JSON.parse(user_data);
+		const refreshToken = parsed_data.tokens.refresh.token;
+	
+		const response = await axios.post(
+			`${config.api_url}/users/refresh-token`,
+			{
+				refresh_token: refreshToken,
+			},
+		);
+	
+		if(!response?.status) clearAndLogout();
+	
+		const newAccessToken = response.data;
+		return newAccessToken;
+	}
 };
 
 // Add request interceptor
@@ -68,7 +69,7 @@ apiClient.interceptors.response.use(
 				// If token is already being refreshed, wait for new token
 				return new Promise(function (resolve) {
 					refreshSubscribers.push((token) => {
-						originalRequest.headers.Authorization = `Bearer ${token}`;
+						if(originalRequest?.headers?.Authorization) originalRequest.headers.Authorization = `Bearer ${token}`;
 						resolve(axios(originalRequest));
 					});
 				});
@@ -82,7 +83,7 @@ apiClient.interceptors.response.use(
 
 				isRefreshing = false;
 
-				const local_data = localStorage.getItem("user");
+				const local_data = localStorage.getItem("user") || '';
 
 				const parsed_data = JSON.parse(local_data);
 
@@ -93,7 +94,8 @@ apiClient.interceptors.response.use(
 				localStorage.setItem("user", JSON.stringify(parsed_data));
 
 				// Update the token in the original request
-				originalRequest.headers.Authorization = `Bearer ${newAccessToken.access.token}`;
+				if(originalRequest?.headers?.Authorization)
+					originalRequest.headers.Authorization = `Bearer ${newAccessToken.access.token}`;
 
 				// Retry the original request and resolve all waiting requests
 				refreshSubscribers.forEach((callback) => callback(newAccessToken.access.token));

@@ -69,7 +69,7 @@ const changeImageStatus = async (input_data: { uuid: string, type: string }) => 
 	}
 };
 
-const getSignedUrl = async (input_data: { img_id: integer, type: string }) => {
+const getSignedUrl = async (input_data: { img_id: number, type: string }) => {
 	try {
 		const response = await apiClient.post(`${base_path}/upload/getSignedUrl`, input_data);
 		return response.data;

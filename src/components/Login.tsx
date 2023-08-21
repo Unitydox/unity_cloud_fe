@@ -17,6 +17,7 @@ import { useAuth } from "hooks/useAuth";
 import { selectMenu } from "../features/sideMenu/sideMenuSlice";
 import LoginPoster from "./LoginPoster";
 import Logo from "../public/full_logo.svg";
+import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const Login: React.FC = () => {
 	const navigate = useNavigate();
@@ -24,6 +25,8 @@ const Login: React.FC = () => {
 	const dispatch = useDispatch();
 
 	const { login } = useAuth();
+
+	const [showPassword, setShowPassword] = useState<boolean>(false);
 
 	const [formData, setFormData] = useState<{ email: string; password: string }>(
 		{ email: "", password: "" },
@@ -99,6 +102,7 @@ const Login: React.FC = () => {
 							<form className="mt-8" onSubmit={handleLoginFormSubmit}>
 								<div className="flex flex-col space-y-4">
 									<div className="py-2">
+										{/* <EnvelopeIcon className="h-4 w-4" /> */}
 										<Input
 											type="text"
 											placeholder="Enter your email address"
@@ -110,12 +114,19 @@ const Login: React.FC = () => {
 										/>
 									</div>
 									<div className="py-2">
+										{/* <LockClosedIcon className="h-4 w-4" /> */}
 										<Input
-											type="password"
+											type={showPassword ? "text" : "password"}
 											placeholder="Enter your Password"
 											label="Password"
 											variant="static"
 											name="password"
+											icon={
+												showPassword ?
+												<EyeIcon className="h-4 w-4 cursor-pointer" onClick={() => setShowPassword(prev => !prev)} />
+												:
+												<EyeSlashIcon className="h-4 w-4 cursor-pointer" onClick={() => setShowPassword(prev => !prev)} /> 
+											}
 											value={formData.password}
 											onChange={handleInputChange}
 										/>
