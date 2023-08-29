@@ -72,9 +72,9 @@ export const useAuth = () => {
 
 	const logout = async () => {
 		try {
-			const user_data = JSON.parse(localStorage.getItem("user"));
+			const user_data = JSON.parse(localStorage.getItem("user") || '');
 
-			const logout = await userLogout({
+			await userLogout({
 				refresh_token: user_data.tokens.refresh.token,
 				access_token: user_data.tokens.access.token,
 			});

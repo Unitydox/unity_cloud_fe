@@ -11,6 +11,7 @@ import {
 } from "@material-tailwind/react";
 import { PlusIcon, XMarkIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { createAlbum, fetchAlbums, toggleImageToAlbum } from "services/photoService";
+import { toast } from "react-hot-toast";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import moment from "moment";
@@ -28,7 +29,7 @@ interface AlbumItems {
 	name: string;
 	created_at: string;
 	no_of_images: number;
-	thumbnail_image: string;
+	thumbnail_url: string;
 }
 
 interface NewFormData {
@@ -41,11 +42,7 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 	const [showAddForm, setShowAddForm] = useState<boolean>(false);
 
 	const _createNewAlbum = (form_data: NewFormData) => {
-		console.log(form_data);
-
 		createAlbum(form_data).then((res) => {
-			console.log(res);
-			
 			selectAlbum(res.data.id);
 		})
 	};
@@ -56,9 +53,11 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 			album_id: album_id,
 			status: 'active'
 		})
-		.then(() => {})
+		.then((res) => {
+			if(res.status) toast.success('Image added to album');
+		})
 		.finally(() => {
-			onClose(album_id);
+			closeDialog(album_id);
 		});
 	};
 
@@ -76,7 +75,16 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 
 	useEffect(() => {
 		fetchAllAlbums();
-	}, []);
+
+		return () => {
+			setShowAddForm(false);
+		}
+	}, [open]);
+
+	const closeDialog = (ev) => {
+		setShowAddForm(false);
+		onClose(ev);
+	}
 
 	return (
 		<>
@@ -84,7 +92,7 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 				size="md"
 				className="h-3/4"
 				open={open}
-				handler={onClose}
+				handler={closeDialog}
 				dismiss={{
 					enabled: true,
 					escapeKey: false,
@@ -94,15 +102,15 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 			>
 				<DialogHeader className="justify-between">
 					<Typography>Add to album</Typography>
-					<XMarkIcon className="h-5 w-5 cursor-pointer" onClick={onClose} />
+					<XMarkIcon className="h-5 w-5 cursor-pointer" onClick={closeDialog} />
 				</DialogHeader>
 				<DialogBody
 					divider={true}
-					className="flex flex-col items-center justify-center border-b-0 border-none p-4"
+					className="flex h-full flex-col items-center border-b-0 border-none px-4 py-0"
 				>
 					<div className="flex w-full justify-start">
 						<Button
-							className="mb-4 flex items-center gap-2 px-3"
+							className="flex items-center gap-2 px-3"
 							variant="outlined"
 							onClick={() => setShowAddForm(prev => !prev)}
 						>	
@@ -122,33 +130,48 @@ const AddToAlbum: React.FC<AddToAlbumProps> = ({ open, onClose, photo_id, photo_
 					</div>
 
 					{loader && (
-						<div className="flex h-full w-full items-center">
+						<div className="flex h-full w-full flex-row items-center justify-center">
 							<Spinner />
 						</div>
 					)}
 
-					{!loader &&
-						!showAddForm &&
-						albumList &&
-						albumList.map((album) => (
-							<div
-								className="flex w-full cursor-pointer flex-row p-2 hover:rounded-lg hover:bg-blue-200"
-								key={album.id}
-								onClick={() => selectAlbum(album.id)}
-							>
-								<div className="w-1/4">
-									<img src={album.thumbnail_image} alt={album.name} />
+					{
+						!loader && !showAddForm &&
+
+					<div className="flex h-[calc(100%-7rem)] w-full flex-col overflow-y-auto">
+
+						{
+							albumList && albumList.map((album) => (
+							<>
+								<div
+									className="flex w-full cursor-pointer flex-row gap-2 p-2 hover:rounded-lg hover:bg-blue-200"
+									key={album.id}
+									onClick={() => selectAlbum(album.id)}
+								>
+									<div className="w-1/5">
+										<img className="mx-auto h-16 rounded shadow" src={album.thumbnail_url} alt={album.name} />
+									</div>
+									<div className="flex w-4/5 flex-col">
+										<Typography color="black">
+											{album.name}
+										</Typography>
+										<Typography variant="small">
+											{moment(album.created_at).format('MMM DD, YYYY')} | {`${album.no_of_images} item(s)`}
+										</Typography>
+									</div>
 								</div>
-								<div className="flex w-3/4 flex-col">
-									<Typography color="black">
-										{album.name}
-									</Typography>
-									<Typography variant="small">
-										{moment(album.created_at).format('MMM DD, YYYY')} | {`${album.no_of_images} item(s)`}
-									</Typography>
-								</div>
-							</div>
+								<div className="mx-auto my-1 h-[1px] w-[90%] bg-blue-gray-100"></div>
+							</>
 						))}
+
+						{
+							(albumList && albumList.length === 0) &&
+							<div className="flex h-full flex-row items-center justify-center">
+								<Typography className="items-center justify-center">Create an album to get started.</Typography>
+							</div>
+						}
+					</div>
+					}
 
 					{showAddForm && (
 						<Formik

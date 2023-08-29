@@ -8,16 +8,17 @@ import Register from "components/Register";
 import Layout from "./pages/Layout";
 import PageNotFound from "components/PageNotFound";
 import FullScreenLoader from "components/FullScreenLoader";
-import { Home, Photos } from "./routes";
+import { Home, Photos, Albums } from "./routes";
 
 function App() {
 	return (
 		<>
 			<Toaster 
 				position="bottom-right"
+				containerClassName="!z-[10000]"
 				toastOptions={{
 					duration: 3000,
-					className: 'font-sans'
+					className: 'font-sans z-[10000]'
 				}}
 			/>
 			<FullScreenLoader />
@@ -34,6 +35,7 @@ function App() {
 						<Route path="/app" element={<Layout />}>
 							<Route path="/app/home" element={<Home />} />
 							<Route path="/app/photos" element={<Photos />} />
+							<Route path="/app/albums" element={<Albums />} />
 							<Route path="*" element={<PageNotFound />} />
 						</Route>
 					</Routes>

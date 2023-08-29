@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import HeartIcon from "./icons/HeartIcon";
 import { updateFavourite, changeImageStatus } from "services/photoService";
+import ActionDialog from "./ActionDialog";
 import ImageDialog from "./ImageDialog";
 import { ArchiveIcon, TrashIcon } from "./icons";
 import { faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
@@ -19,6 +20,11 @@ interface ImageCardProps {
 	onStatusChange: any;
 }
 
+// interface statusUpdateProps {
+// 	formattedDate: string, 
+// 	uuid: string
+// }
+
 const ImagePlaceholder = () => {
 	return (
 		<div className="h-[130px] w-full animate-pulse rounded-lg bg-gray-400/50">
@@ -33,6 +39,14 @@ const ImageCard: React.FC<ImageCardProps> = ({ src, full_url, photo_id, photo_pr
 	const [isImagePreviewOpen, setIsImagePreviewOpen] = useState<boolean>(false);
 	const [isLiked, setIsLiked] = useState<boolean>(isFavourite);
 	const [imageSrc, setImageSrc] = useState<string>(src);
+	const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+	const [statusUpdateType, setStatusUpdateType] = useState<string>("");
+	const [headerText, setHeaderText] = useState<string>(`
+		%PH% Image
+	`);
+	const [bodyText, setBodyText] = useState<string>(`
+		Are you sure you want to %PH% the image?
+	`);
 
 	useEffect(() => {
 		// setIsImageLoaded(false);
@@ -62,9 +76,15 @@ const ImageCard: React.FC<ImageCardProps> = ({ src, full_url, photo_id, photo_pr
 			type: type
 		}).then((res) => {
 			console.log("Image Updated");
-			onStatusChange();
+			onStatusChange(type);
 		}).finally(() => {})
 	};
+
+	const showWarningDialog = (type: string) => {
+		setStatusUpdateType(type);
+
+		setConfirmDialogOpen(true);
+	}
 
 	const handleImageClick = () => {
 		setIsImagePreviewOpen(true);
@@ -84,6 +104,10 @@ const ImageCard: React.FC<ImageCardProps> = ({ src, full_url, photo_id, photo_pr
 			}
 		})
 	}
+	
+	const capitalizeFirstLetter = (str: string) => {
+		return str.charAt(0).toUpperCase() + str.slice(1);
+	}
 
 	return (
 		<div className="relative mx-auto max-h-[150px] max-w-[200px] rounded-lg">
@@ -94,16 +118,16 @@ const ImageCard: React.FC<ImageCardProps> = ({ src, full_url, photo_id, photo_pr
 						(viewType != 'delete') ?
 						<>
 							<HeartIcon defaultFilled={isLiked} onClick={handleLikeClick} />
-							<span onClick={() => handleStatusChange('archive')}>
+							<span onClick={() => showWarningDialog('archive')}>
 								<ArchiveIcon className="fill-gray-500" />
 							</span>
-							<span onClick={() => handleStatusChange('delete')}>
+							<span onClick={() => showWarningDialog('delete')}>
 								<TrashIcon className="fill-gray-500" />
 							</span>
 						</>
 						:
 						<>
-							<span onClick={() => handleStatusChange('active')}>
+							<span onClick={() => showWarningDialog('active')}>
 								<FontAwesomeIcon icon={faTrashArrowUp} size="lg" className="cursor-pointer text-green-500" />
 							</span>
 						</>
@@ -136,6 +160,24 @@ const ImageCard: React.FC<ImageCardProps> = ({ src, full_url, photo_id, photo_pr
 				isLiked={isLiked} 
 				onImageLiked={handleLikeClick} 
 			/>
+
+			{
+				confirmDialogOpen && 
+
+				<ActionDialog 
+					headerContent={
+						headerText.replace("%PH%", capitalizeFirstLetter(statusUpdateType))
+					}
+					bodyContent={
+						bodyText.replace("%PH%", capitalizeFirstLetter(statusUpdateType))
+					}
+					confirmBtn={statusUpdateType}
+					onConfirm={() => handleStatusChange(statusUpdateType)}
+					cancelBtn="Cancel"
+					onCancel={() => setConfirmDialogOpen(false)}
+					isOpen={confirmDialogOpen}
+				/>
+			}
 		</div>
 
 	);

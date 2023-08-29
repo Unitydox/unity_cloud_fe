@@ -5,12 +5,16 @@ interface LoadingContextType {
 	setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface LoadingProviderProps {
+	children: React.ReactNode;
+}
+
 const LoadingContext = createContext<LoadingContextType>({
 	loading: false,
 	setLoading: () => {},
 });
 
-export const LoadingProvider: React.FC = ({ children }) => {
+export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) => {
 	const [loading, setLoading] = useState(false);
 
 	return (
