@@ -58,7 +58,7 @@ const ActionDialog: React.FC<ActionDialogProps> = ({
 					<Button
 						variant="filled"
 						color="orange"
-						onClick={(ev) => onClose({ ev, type: "close" })}
+						onClick={(ev) => onClose({ ev, type: "save" })}
 					>
 						{confirmBtn}
 					</Button>

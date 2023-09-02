@@ -8,7 +8,7 @@ import Register from "components/Register";
 import Layout from "./pages/Layout";
 import PageNotFound from "components/PageNotFound";
 import FullScreenLoader from "components/FullScreenLoader";
-import { Home, Photos, Albums } from "./routes";
+import { Home, Photos, Albums, AlbumsList, AlbumsView } from "./routes";
 
 function App() {
 	return (
@@ -35,7 +35,10 @@ function App() {
 						<Route path="/app" element={<Layout />}>
 							<Route path="/app/home" element={<Home />} />
 							<Route path="/app/photos" element={<Photos />} />
-							<Route path="/app/albums" element={<Albums />} />
+							<Route path="/app/albums" element={<Albums />} >
+								<Route index element={<AlbumsList />} />
+								<Route path="/app/albums/view" element={<AlbumsView />} />
+							</Route>
 							<Route path="*" element={<PageNotFound />} />
 						</Route>
 					</Routes>

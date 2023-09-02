@@ -145,10 +145,10 @@ function SideNav() {
 
 	return (
 		<Card
-			className="w-full max-w-[4rem] overflow-y-auto rounded-none px-0 md:max-w-[18rem] md:pe-2"
+			className="w-full max-w-[4rem] overflow-y-auto rounded-none rounded-r-xl bg-gray-100/50 px-0 pe-0 md:max-w-[18rem]"
 			shadow={false}
 		>
-			<List className="w-full min-w-full ps-0	">{renderMenuItems(menuItems)}</List>
+			<List className="w-full min-w-full px-0">{renderMenuItems(menuItems)}</List>
 		</Card>
 	);
 }

@@ -109,6 +109,16 @@ const fetchAlbums = async () => {
 	}
 };
 
+const fetchAlbumImages = async (input_data: {uuid: string}) => {
+	try {
+		const response = await apiClient.get(`${base_path}/album/fetchAlbumImages${getUrlQueryFromObj(input_data)}`);
+		return response.data;
+	} catch (error) {
+		// throw error;
+		return error;
+	}
+};
+
 const deleteAlbum = async (input_data: { uuid: string, type: string }) => {
 	try {
 		const response = await apiClient.put(`${base_path}/album/deleteAlbum`, input_data);
@@ -121,5 +131,5 @@ const deleteAlbum = async (input_data: { uuid: string, type: string }) => {
 
 export { 
 	uploadImage, fetchImages, getDistinctDates, updateFavourite, changeImageStatus, getSignedUrl, 
-	createAlbum, toggleImageToAlbum, fetchAlbums, deleteAlbum
+	createAlbum, toggleImageToAlbum, fetchAlbums, fetchAlbumImages, deleteAlbum
 };
