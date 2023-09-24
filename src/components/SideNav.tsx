@@ -30,7 +30,7 @@ import {
 	StarIcon,
 	TrashIcon,
 	UtilitiesIcon,
-} from "../components/icons";
+} from "components/icons";
 
 interface IconProps {
 	size?: number;
@@ -48,7 +48,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
 	{ name: "Photos", icon: PhotosIcon, route: "/app/photos", state: { type: '' } },
 	// { name: "Explore", icon: SearchIcon, route: "/app/explore" },
-	{ name: "Sharing", icon: SharingIcon, route: "/app/sharing" },
+	// { name: "Sharing", icon: SharingIcon, route: "/app/sharing" },
 	{ name: "Favourites", icon: StarIcon, route: "/app/photos?type=favourites", state: { type: 'favourites' } },
 	{ name: "Albums", icon: AlbumIcon, route: "/app/albums" },
 	// { name: "Utilities", icon: UtilitiesIcon, route: "/app/utilities" },

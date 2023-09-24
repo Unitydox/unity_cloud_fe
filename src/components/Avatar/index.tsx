@@ -39,7 +39,7 @@ export default function Avatar({ size = 'medium', src, alt }: AvatarProps) {
 
   return (
     <img
-      className={classNames('inline-block rounded-full cursor-pointer', sizes[size])}
+      className={classNames('inline-block rounded-full cursor-pointer object-cover', sizes[size])}
       src={src}
       alt={alt}
     />

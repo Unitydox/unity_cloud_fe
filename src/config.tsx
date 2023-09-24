@@ -5,7 +5,8 @@ const config = {
             default: ''
         }
     },
-    api_url: 'http://localhost:8000'
+    api_url: 'http://localhost:8000',
+    env: 'dev'
 };
 
 export default config;

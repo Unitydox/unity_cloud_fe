@@ -1,16 +1,10 @@
 import { createContext, useState, ReactNode } from 'react';
+import { IUserDetails } from 'models/user';
 
 export interface AuthContextType {
-  user: User | null;
-  login: (user: User) => void;
+  user: IUserDetails | null;
+  login: (user: IUserDetails) => void;
   logout: () => void;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
 }
 
 interface AuthProviderProps {
@@ -20,9 +14,9 @@ interface AuthProviderProps {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<IUserDetails | null>(null);
 
-  const login = (user: User) => {
+  const login = (user: IUserDetails) => {
     setUser(user);
   };
 

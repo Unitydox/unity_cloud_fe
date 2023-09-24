@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { FileUploadProvider } from 'contexts/FileUploadContext';
-import Header from '../components/Header';
-import SideNav from '../components/SideNav'
+import Header from 'components/Header';
+import SideNav from 'components/SideNav';
 
 function Layout() {
 

@@ -1,20 +1,7 @@
 import apiClient from "./apiClient";
+import { getUrlQueryFromObj } from "utils";
 
 const base_path = "/photos";
-
-const getUrlQueryFromObj = (obj: any) => {
-
-	let query = '';
-	
-	for(const key in obj){
-		if(obj[key]){
-			if(query != '') query += '&';
-			query += `${key}=${obj[key]}`;
-		}
-	}
-	
-	return (query.length) ? '?'+query : '';
-}
 
 const uploadImage = async (formData: FormData) => {
 	try {
@@ -29,9 +16,16 @@ const uploadImage = async (formData: FormData) => {
 	}
 };
 
-const fetchImages = async (input_data: {type: string, status: string, date: string}) => {
+const fetchImages = async (input_data: {
+	type: string;
+	status: string;
+	date: string;
+	searchText: string | undefined;
+}) => {
 	try {
-		const response = await apiClient.get(`${base_path}/upload/fetchAllImages${getUrlQueryFromObj(input_data)}`);
+		const response = await apiClient.get(
+			`${base_path}/upload/fetchAllImages${getUrlQueryFromObj(input_data)}`,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -39,9 +33,15 @@ const fetchImages = async (input_data: {type: string, status: string, date: stri
 	}
 };
 
-const getDistinctDates = async (input_data: {type: string, status: string}) => {
+const getDistinctDates = async (input_data: {
+	type: string;
+	status: string;
+	searchText: string | undefined;
+}) => {
 	try {
-		const response = await apiClient.get(`${base_path}/upload/getDistinctDates${getUrlQueryFromObj(input_data)}`);
+		const response = await apiClient.get(
+			`${base_path}/upload/getDistinctDates${getUrlQueryFromObj(input_data)}`,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -49,9 +49,15 @@ const getDistinctDates = async (input_data: {type: string, status: string}) => {
 	}
 };
 
-const updateFavourite = async (input_data: { uuid: string, isLiked: boolean }) => {
+const updateFavourite = async (input_data: {
+	uuid: string;
+	isLiked: boolean;
+}) => {
 	try {
-		const response = await apiClient.put(`${base_path}/upload/updateFavourite`, input_data);
+		const response = await apiClient.put(
+			`${base_path}/upload/updateFavourite`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -59,9 +65,15 @@ const updateFavourite = async (input_data: { uuid: string, isLiked: boolean }) =
 	}
 };
 
-const changeImageStatus = async (input_data: { uuid: string, type: string }) => {
+const changeImageStatus = async (input_data: {
+	uuid: string;
+	type: string;
+}) => {
 	try {
-		const response = await apiClient.put(`${base_path}/upload/updateStatus`, input_data);
+		const response = await apiClient.put(
+			`${base_path}/upload/updateStatus`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -69,9 +81,28 @@ const changeImageStatus = async (input_data: { uuid: string, type: string }) => 
 	}
 };
 
-const getSignedUrl = async (input_data: { img_id: number, type: string }) => {
+const bulkUpdateStatus = async (input_data: {
+	uuid: string[];
+	type: string;
+}) => {
 	try {
-		const response = await apiClient.post(`${base_path}/upload/getSignedUrl`, input_data);
+		const response = await apiClient.put(
+			`${base_path}/upload/bulkUpdateStatus`,
+			input_data,
+		);
+		return response.data;
+	} catch (error) {
+		// throw error;
+		return error;
+	}
+};
+
+const getSignedUrl = async (input_data: { file_path?: string; expiryInSeconds?: number; img_id?: number; type?: string }) => {
+	try {
+		const response = await apiClient.post(
+			`${base_path}/upload/getSignedUrl`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -81,7 +112,10 @@ const getSignedUrl = async (input_data: { img_id: number, type: string }) => {
 
 const createAlbum = async (input_data: { name: string }) => {
 	try {
-		const response = await apiClient.post(`${base_path}/album/createAlbum`, input_data);
+		const response = await apiClient.post(
+			`${base_path}/album/createAlbum`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -89,9 +123,33 @@ const createAlbum = async (input_data: { name: string }) => {
 	}
 };
 
-const toggleImageToAlbum = async (input_data: { image_id: number, album_id: number, status: string }) => {
+const toggleImageToAlbum = async (input_data: {
+	image_id: number;
+	album_id: number;
+	status: string;
+}) => {
 	try {
-		const response = await apiClient.put(`${base_path}/album/toggleImageToAlbum`, input_data);
+		const response = await apiClient.put(
+			`${base_path}/album/toggleImageToAlbum`,
+			input_data,
+		);
+		return response.data;
+	} catch (error) {
+		// throw error;
+		return error;
+	}
+};
+
+const bulkToggleImageToAlbum = async (input_data: {
+	images_id: number[];
+	album_id: number;
+	status: string;
+}) => {
+	try {
+		const response = await apiClient.put(
+			`${base_path}/album/bulkToggleImageToAlbum`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -109,9 +167,11 @@ const fetchAlbums = async () => {
 	}
 };
 
-const fetchAlbumImages = async (input_data: {uuid: string}) => {
+const fetchAlbumImages = async (input_data: { uuid: string }) => {
 	try {
-		const response = await apiClient.get(`${base_path}/album/fetchAlbumImages${getUrlQueryFromObj(input_data)}`);
+		const response = await apiClient.get(
+			`${base_path}/album/fetchAlbumImages${getUrlQueryFromObj(input_data)}`,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -119,9 +179,12 @@ const fetchAlbumImages = async (input_data: {uuid: string}) => {
 	}
 };
 
-const deleteAlbum = async (input_data: { uuid: string, type: string }) => {
+const deleteAlbum = async (input_data: { uuid: string; type: string }) => {
 	try {
-		const response = await apiClient.put(`${base_path}/album/deleteAlbum`, input_data);
+		const response = await apiClient.put(
+			`${base_path}/album/deleteAlbum`,
+			input_data,
+		);
 		return response.data;
 	} catch (error) {
 		// throw error;
@@ -129,7 +192,32 @@ const deleteAlbum = async (input_data: { uuid: string, type: string }) => {
 	}
 };
 
-export { 
-	uploadImage, fetchImages, getDistinctDates, updateFavourite, changeImageStatus, getSignedUrl, 
-	createAlbum, toggleImageToAlbum, fetchAlbums, fetchAlbumImages, deleteAlbum
+const uploadProfilePhoto = async (formData: FormData) => {
+	try {
+		const response = await apiClient.put(
+			`${base_path}/upload/uploadProfileImage`,
+			formData,
+		);
+		return response.data;
+	} catch (error) {
+		// throw error;
+		return error;
+	}
+};
+
+export {
+	uploadImage,
+	fetchImages,
+	getDistinctDates,
+	updateFavourite,
+	changeImageStatus,
+	bulkUpdateStatus,
+	getSignedUrl,
+	createAlbum,
+	toggleImageToAlbum,
+	bulkToggleImageToAlbum,
+	fetchAlbums,
+	fetchAlbumImages,
+	deleteAlbum,
+	uploadProfilePhoto,
 };

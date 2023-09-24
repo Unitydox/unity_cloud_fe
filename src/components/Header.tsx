@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from 'react-redux';
-import { selectMenu } from '../features/sideMenu/sideMenuSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { selectMenu } from "features/sideMenu/sideMenuSlice";
+import { updateSearchText } from "features/globalSearch/imageSearchSlice";
 import {
 	Navbar,
 	Typography,
@@ -11,17 +12,22 @@ import {
 	MenuHandler,
 	MenuItem,
 	MenuList,
+	Spinner,
 } from "@material-tailwind/react";
-import { faCog, faUpload, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	CloudArrowUpIcon,
+	QuestionMarkCircleIcon,
+	MagnifyingGlassIcon,
+	UserCircleIcon,
+	XMarkIcon
+} from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import { useFileUploadContext } from "contexts/FileUploadContext";
 import FullLogo from "../public/full_logo.svg";
-import Logo from "../public/logo.svg"
+import Logo from "../public/logo.svg";
 import Avatar from "./Avatar";
 import { useAuth } from "hooks/useAuth";
-import { uploadImage } from "services/photoService";
+import { getSignedUrl, uploadImage } from "services/photoService";
 
 function Header() {
 	const navigate = useNavigate();
@@ -31,18 +37,46 @@ function Header() {
 	const inputFileRef = useRef(null);
 
 	const { setUploadedFile } = useFileUploadContext();
+
+	const userData = useSelector((state) => state.userDetails.data);
+
 	// const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 	const { logout } = useAuth();
+	const [searchText, setSearchText] = useState<string>("");
+	const [profileUrl, setProfileUrl] = useState<string | undefined>();
+	const [isUploading, setIsUploading] = useState<boolean>(false);
 
 	const redirectToHome = () => {
 		navigate("/app/photos");
-		dispatch(selectMenu('0'));
-	}
+		dispatch(selectMenu("0"));
+	};
 
-	const imageUpload = async (event: any) => {
-		
+	const visitProfile = () => {
+		navigate("/app/profile");
+	};
+
+	const handleInputChange = (event) => {
+		setSearchText(event.target.value);
+	};
+
+	useEffect(() => {
+		const debounceTime = 300; // Adjust debounce time as needed (in milliseconds)
+
+		const timeoutId = setTimeout(() => {
+			dispatch(updateSearchText(searchText));
+		}, debounceTime);
+
+		return () => {
+			// Cleanup function to clear the timeout when the component unmounts or searchText changes
+			clearTimeout(timeoutId);
+		};
+	}, [searchText]);
+
+	const _imageUpload = async (event: any) => {
 		const file = event.target.files[0];
+
+		console.log({ file });
 
 		if (!file.type.startsWith("image/")) {
 			toast.error("Only Images can be uploaded!");
@@ -53,32 +87,127 @@ function Header() {
 
 		formData.append("file", file);
 
-		const fileUploadToast = toast.loading('Uploading...');
+		const fileUploadToast = toast.loading("Uploading...");
 
 		const response = await uploadImage(formData);
 
 		if (response.status) {
-			setUploadedFile(file);
-			
-			toast.success('File uploaded', { id: fileUploadToast, duration: 3000 })
-		}else{
-			toast.error('Error in file upload', { id: fileUploadToast, duration: 3000 })
+			// setUploadedFile(file);
+
+			toast.success("File uploaded", { id: fileUploadToast, duration: 3000 });
+		} else {
+			toast.error("Error in file upload", {
+				id: fileUploadToast,
+				duration: 3000,
+			});
 		}
 
-		toast.dismiss(fileUploadToast);
-		// setUploadedFile(null);
-		
+		setTimeout(() => {
+			toast.dismiss(fileUploadToast);
+		}, 800);
+
+		setUploadedFile(null);
+
 		inputFileRef.current.value = null;
 	};
+
+	const imageUpload = async (event: any) => {
+		const files = event.target.files;
+
+		if (files.length > 10) {
+			toast(
+				"You can upload a maximum of 10 files at once. Onle the first 10 files will be processed.",
+				{ icon: <QuestionMarkCircleIcon /> },
+			);
+		}
+
+		for (const file of files) {
+			if (!file.type.startsWith("image/")) {
+				toast.error("Only Images can be uploaded!");
+				return;
+			}
+
+			const formData = new FormData();
+
+			formData.append("file", file);
+
+			const preview = URL.createObjectURL(file);
+
+			const fileUploadToast = toast.custom((t) => (
+				<div
+					className={`pointer-events-auto flex rounded-lg border-gray-500 bg-white px-2 shadow-2xl drop-shadow-2xl`}
+				>
+					<div className="flex flex-col items-center">
+						<div className="flex w-full cursor-pointer flex-row items-center justify-end py-1">
+							<XMarkIcon className="h-5 w-5 text-red-500" onClick={() => toast.dismiss(t.id)} />
+						</div>
+						<img className="h-[130px] w-[130px] object-cover" src={preview} alt="" />
+						<div className="flex flex-row items-center justify-between gap-x-3 border-gray-200 p-2">
+							<span>Uploading...</span>
+							<Spinner className="h-4 w-4" />
+						</div>
+					</div>
+				</div>
+			), {
+				duration: 3000,
+			});
+
+			const response = await uploadImage(formData);
+
+			if (response.status) {
+				setUploadedFile(file);
+
+				toast.success("File uploaded", { id: fileUploadToast, duration: 3000 });
+			} else {
+				toast.error("Error in file upload", {
+					id: fileUploadToast,
+					duration: 3000,
+				});
+			}
+
+			setTimeout(() => {
+				toast.dismiss(fileUploadToast);
+			}, 800);
+
+		}
+		setUploadedFile(null);
+
+		inputFileRef.current.value = null;
+	};
+
+	useEffect(() => {
+		if (userData?.profile_thumb_url) {
+			getSignedUrl({
+				file_path: userData.profile_thumb_url,
+				expiryInSeconds: 6000,
+			}).then((res) => {
+				if (res?.data) {
+					setProfileUrl(res.data);
+				}
+			});
+		}
+	}, [userData?.profile_thumb_url]);
 
 	return (
 		<Navbar className="relative z-10 h-auto !max-w-full px-4 py-3">
 			<div className="flex flex-wrap items-center justify-between gap-y-4 text-blue-gray-900">
-				<img src={Logo} alt="logo-picture" className="block cursor-pointer sm:hidden" onClick={redirectToHome} />
-				<img src={FullLogo} alt="logo-picture" className="hidden cursor-pointer sm:block" onClick={redirectToHome} />
+				<img
+					src={Logo}
+					alt="logo-picture"
+					className="block cursor-pointer sm:hidden"
+					onClick={redirectToHome}
+				/>
+				<img
+					src={FullLogo}
+					alt="logo-picture"
+					className="hidden cursor-pointer sm:block"
+					onClick={redirectToHome}
+				/>
 				<div className="relative flex hidden w-2/5 gap-2 md:block">
 					<div className="flex w-full flex-row items-center rounded-lg border-b-2 border-gray-400 bg-gray-200 shadow-lg">
-						<FontAwesomeIcon className="px-4" icon={faSearch} />
+						<span className="px-2">
+							<MagnifyingGlassIcon className="h-5 w-5 text-blue-500" />
+						</span>
 						<Input
 							variant="static"
 							type="search"
@@ -88,6 +217,8 @@ function Header() {
 							containerProps={{
 								className: "min-w-full",
 							}}
+							value={searchText}
+							onChange={handleInputChange}
 						/>
 					</div>
 				</div>
@@ -97,6 +228,7 @@ function Header() {
 						accept="image/png, image/jpeg"
 						type="file"
 						className="hidden"
+						multiple
 						onChange={imageUpload}
 						ref={inputFileRef}
 					/>
@@ -104,12 +236,14 @@ function Header() {
 						variant="text"
 						className="flex items-center gap-3 !px-2"
 						onClick={(e) => inputFileRef.current.click()}
+						disabled={isUploading}
 					>
-						<FontAwesomeIcon size="2x" icon={faUpload} />
+						<CloudArrowUpIcon className="h-8 w-8 text-blue-500" />
 						Upload
 					</Button>
 					<Button variant="text" className="flex items-center gap-3 !px-2">
-						<FontAwesomeIcon size="2x" icon={faQuestionCircle} />
+						<QuestionMarkCircleIcon className="h-8 w-8 text-blue-500" />
+						{/* <FontAwesomeIcon size="2x" icon={faQuestionCircle} /> */}
 					</Button>
 					{/* <Button variant="text" className="flex items-center gap-3 !px-2">
 						<FontAwesomeIcon size="2x" icon={faCog} />
@@ -121,51 +255,29 @@ function Header() {
 								className="!hover:bg-transparent !active:bg-none !px-2 !py-0"
 								ripple={false}
 							>
-								<Avatar alt="profile pic" />
+								<Avatar src={profileUrl} alt="profile pic" />
 							</Button>
 						</MenuHandler>
 						<MenuList>
-							<MenuItem className="flex items-center gap-2">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth={2}
-									stroke="currentColor"
-									className="h-4 w-4"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
+							{/* {
+								userData.first_name && 
+								<>
+									<MenuItem className="flex items-center gap-2" onClick={visitProfile}>
+										
+										<Typography variant="small" className="font-normal">
+											{userData.first_name + userData.last_name}
+										</Typography>
+									</MenuItem>
+									<hr className="my-2 border-blue-gray-50" />
+								</>
+							} */}
+							<MenuItem
+								className="flex items-center gap-2"
+								onClick={visitProfile}
+							>
+								<UserCircleIcon className="h-5 w-5" />
 								<Typography variant="small" className="font-normal">
 									My Profile
-								</Typography>
-							</MenuItem>
-							<MenuItem className="flex items-center gap-2">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth={2}
-									stroke="currentColor"
-									className="h-4 w-4"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"
-									/>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
-								<Typography variant="small" className="font-normal">
-									Edit Profile
 								</Typography>
 							</MenuItem>
 							<hr className="my-2 border-blue-gray-50" />

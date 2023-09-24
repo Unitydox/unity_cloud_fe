@@ -1,4 +1,6 @@
 import apiClient from './apiClient';
+import { getUrlQueryFromObj } from "utils";
+import { IRegisterUser, IThirdPartyRegisterUser, ITokens, IProfileForm } from 'models/user';
 
 const base_path = '/users';
 
@@ -12,17 +14,7 @@ const userLogin = async (formData: {email: string, password: string}) => {
   }
 }
 
-interface register_user {
-  first_name: string;
-	last_name: string;
-	email: string;
-	dob: Date;
-	password: string;
-	confirm_password: string;
-	isTermsAccepted: boolean;
-} 
-
-const registerUser = async (formData: register_user) => {
+const registerUser = async (formData: IRegisterUser) => {
   try {
     const response = await apiClient.post(`${base_path}/register`, formData);   
     return response.data;
@@ -32,7 +24,17 @@ const registerUser = async (formData: register_user) => {
   }
 }
 
-const userLogout = async (token_data: {refresh_token: string, access_token: string}) => {
+const registerOrLogin = async (formData: IThirdPartyRegisterUser) => {
+  try {
+    const response = await apiClient.post(`${base_path}/thirdPartyLogin`, formData);   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
+const userLogout = async (token_data: ITokens) => {
   try {
     const response = await apiClient.post(`${base_path}/logout`, token_data);   
     return response.data;
@@ -42,8 +44,47 @@ const userLogout = async (token_data: {refresh_token: string, access_token: stri
   }
 }
 
+const userMailVerification = async (userId: string) => {
+  try {
+    const response = await apiClient.post(`${base_path}/verifyUserFromLink`, {userId});   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
+const isUserVerified = async (userId: string) => {
+  try {
+    const response = await apiClient.get(`${base_path}/isUserVerified${getUrlQueryFromObj({userId})}`);   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
+const getUserDetails = async (userId: string) => {
+  try {
+    const response = await apiClient.get(`${base_path}/getUserDetails${getUrlQueryFromObj({userId})}`);   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
+const updateUserDetails = async (formData: IProfileForm) => {
+  try {
+    const response = await apiClient.put(`${base_path}/updateUserDetails`, formData);   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
 export {
-  userLogin, 
-  userLogout,
-  registerUser
+  userLogin, userLogout, registerUser, registerOrLogin, userMailVerification, isUserVerified, 
+  getUserDetails, updateUserDetails
 }

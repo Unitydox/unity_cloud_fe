@@ -9,22 +9,11 @@ import {
 } from "services/photoService";
 import ActionDialog from "./ActionDialog";
 import ImageDialog from "./ImageDialog";
+import { ImageCardProps } from "types/imageTypes";
 import { ArchiveIcon, TrashIcon } from "./icons";
 import { faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox } from "@material-tailwind/react";
-
-interface ImageCardProps {
-	src: string;
-	full_url: string;
-	photo_primary_id: number;
-	photo_id: string;
-	isFavourite: boolean;
-	additional_params?: any;
-	viewType: string;
-	onLikeChange: any;
-	onStatusChange: any;
-}
 
 // interface statusUpdateProps {
 // 	formattedDate: string,
@@ -45,6 +34,8 @@ const ImageCard: React.FC<ImageCardProps> = ({
 	photo_id,
 	photo_primary_id,
 	isFavourite,
+	isImageSelected = false,
+	onImageSelected,
 	additional_params = {},
 	viewType,
 	onLikeChange,
@@ -53,20 +44,22 @@ const ImageCard: React.FC<ImageCardProps> = ({
 	const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
 	const [isImagePreviewOpen, setIsImagePreviewOpen] = useState<boolean>(false);
 	const [isLiked, setIsLiked] = useState<boolean>(isFavourite);
+	const [isChecked, setIsChecked] = useState<boolean>(isImageSelected);
 	const [imageSrc, setImageSrc] = useState<string>(src);
 	const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
 	const [statusUpdateType, setStatusUpdateType] = useState<string>("");
-	const [headerText, setHeaderText] = useState<string>(`
+	const [headerText] = useState<string>(`
 		%PH% Image
 	`);
-	const [bodyText, setBodyText] = useState<string>(`
+	const [bodyText] = useState<string>(`
 		Are you sure you want to %PH% the image?
 	`);
+	// const [isImageSelected, setIsImageSelected] = useState<boolean>(false);
 
 	useEffect(() => {
-		// setIsImageLoaded(false);
+		setIsChecked(isImageSelected);
 		setImageSrc(src);
-	}, [src]);
+	}, [src, isImageSelected]);
 
 	const handleLikeClick = (output: boolean) => {
 		console.log(`Heart icon clicked. Output: ${output}, ${photo_id}`);
@@ -122,6 +115,20 @@ const ImageCard: React.FC<ImageCardProps> = ({
 		setIsImagePreviewOpen(true);
 	};
 
+	const handleImageLoad = () => {
+		setIsImageLoaded(true);
+
+		const preloadedImage = new Image();
+
+		// Set the src attribute to the URL of the image you want to preload
+		preloadedImage.src = full_url;
+
+		// Attach an event listener for the load event
+		preloadedImage.addEventListener("load", () => {
+			console.log("Image loaded");
+		});
+	};
+
 	const onDialogClose = () => {
 		setIsImagePreviewOpen((cur) => !cur);
 	};
@@ -139,6 +146,11 @@ const ImageCard: React.FC<ImageCardProps> = ({
 
 	const capitalizeFirstLetter = (str: string) => {
 		return str.charAt(0).toUpperCase() + str.slice(1);
+	};
+
+	const onImgSelected = () => {
+		setIsChecked((prev) => !prev);
+		onImageSelected();
 	};
 
 	const ActionBtns = ({ viewType }: { viewType: string }) => {
@@ -179,13 +191,19 @@ const ImageCard: React.FC<ImageCardProps> = ({
 	};
 
 	return (
-		<div className="relative mx-auto max-h-[150px] max-w-[200px] rounded-lg">
+		<div className="group relative mx-auto max-h-[150px] max-w-[200px] rounded-lg">
 			{isImageLoaded && (
 				<>
-					<div className="absolute right-0 top-0 z-10">
+					<div
+						className={`absolute left-0 top-0 z-10 hidden rounded-br-lg bg-gray-100/30 group-hover:block ${
+							isChecked && "!block"
+						}`}
+					>
 						<Checkbox
-							defaultChecked
-							className="h-5 w-5 rounded-full border-gray-900/20 bg-gray-900/10 transition-all hover:scale-105 hover:before:opacity-0"
+							checked={isChecked}
+							onChange={onImgSelected}
+							className="m-2 h-5 w-5 rounded-full border-white bg-gray-900/10 transition-all hover:scale-110 hover:before:opacity-0"
+							containerProps={{ className: "p-0" }}
 						/>
 					</div>
 
@@ -204,7 +222,7 @@ const ImageCard: React.FC<ImageCardProps> = ({
 				}`}
 				height="130px"
 				threshold={500}
-				onLoad={() => setIsImageLoaded(true)}
+				onLoad={handleImageLoad}
 				onClick={handleImageClick}
 				onError={handleImageError}
 				effect="blur"

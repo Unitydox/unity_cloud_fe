@@ -13,7 +13,7 @@ const LoginPoster: React.FC = () => {
 						<FontAwesomeIcon icon={faPhone} size="xs" className="pr-2" />
 						<p className="text-xs">+94 0116 789 754</p>
 					</CardHeader> */}
-			<CardBody className="h-[95%]">
+			<CardBody className="h-full">
 				{/* Left side - Image */}
 				<div className="flex h-full flex-col">
 					<div className="inline-flex h-4/5 flex-col justify-center">
@@ -28,7 +28,7 @@ const LoginPoster: React.FC = () => {
 							Sign in to Unitydox
 						</Typography>
 						<Typography variant="small" color="white">
-							Save your document securely
+							Save your photos securely!
 						</Typography>
 					</div>
 				</div>

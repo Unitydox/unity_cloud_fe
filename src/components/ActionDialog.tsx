@@ -41,7 +41,7 @@ const ActionDialog: React.FC<ActionDialogProps> = ({
 		<Dialog open={isOpen} handler={(ev) => onClose({ ev, type: "close" })}>
 			<DialogHeader>
 				{typeof headerContent === "string" ? (
-					<Typography>{headerContent}</Typography>
+					<Typography className="capitalize">{headerContent}</Typography>
 				) : (
 					<>{headerContent}</>
 				)}

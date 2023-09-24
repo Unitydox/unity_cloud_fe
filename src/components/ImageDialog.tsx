@@ -8,6 +8,7 @@ import {
 	IconButton,
 	Typography,
 	Spinner,
+	Drawer,
 } from "@material-tailwind/react";
 import AddToAlbum from "./AddToAlbum";
 import HeartIcon from "./icons/HeartIcon";
@@ -20,6 +21,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { getSignedUrl } from "services/photoService";
+import DownloadFile from "./DownloadFile";
 
 interface ImageDialogProps {
 	open: boolean;
@@ -42,21 +44,27 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 }) => {
 	const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState<boolean>(false);
 	const [imageSrc, setImageSrc] = useState<string>(imgUrl);
+	const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
 	useEffect(() => {
 		setImageSrc(imgUrl);
-	}, [imgUrl])
+	}, [imgUrl]);
+	
+	useEffect(() => {
+		console.log(isDrawerOpen);
+	}, [isDrawerOpen]);
+
+	const openDrawer = () => setIsDrawerOpen(true);
+	const closeDrawer = () => setIsDrawerOpen(false);
 
 	const onFavChanged = () => {
 		isLiked = !isLiked;
 		onImageLiked(isLiked);
 	};
 
-	const getDownloadURL = () => {};
+	// const showImgDetails = () => {};
 
-	const showImgDetails = () => {};
-
-	const shareImage = () => {};
+	// const shareImage = () => {};
 
 	const addToAlbum = () => {
 		setIsAlbumDialogOpen(true);
@@ -65,13 +73,13 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 	const handleImageError = () => {
 		getSignedUrl({
 			img_id: photo_primary_id,
-			type: 'main'
+			type: "main",
 		}).then((res) => {
-			if(res?.data){
+			if (res?.data) {
 				setImageSrc(res.data);
 			}
-		})
-	}
+		});
+	};
 
 	return (
 		<>
@@ -89,18 +97,15 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 							className="h-5 w-5 cursor-pointer text-white"
 							onClick={addToAlbum}
 						/>
-						<ArrowDownTrayIcon
-							className="h-5 w-5 cursor-pointer text-white"
-							onClick={getDownloadURL}
-						/>
+						<DownloadFile fileUrl={imgUrl} />
 						<InformationCircleIcon
 							className="h-5 w-5 cursor-pointer text-white"
-							onClick={showImgDetails}
+							onClick={openDrawer}
 						/>
-						<ShareIcon
+						{/* <ShareIcon
 							className="h-5 w-5 cursor-pointer text-white"
 							onClick={shareImage}
-						/>
+						/> */}
 						<XMarkIcon
 							className="h-5 w-5 cursor-pointer text-white"
 							onClick={() => onClose(isLiked)}
@@ -135,21 +140,15 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
 						photo_primary_id={photo_primary_id}
 					/>
 				</DialogBody>
-				{/* <DialogFooter className="absolute bottom-0 z-10 w-full justify-between bg-black opacity-[0.85]">
-					<div className="flex items-center gap-16"></div>
-					<div className="flex flex-row items-center gap-2">
-						<HeartIcon defaultFilled={isLiked} onClick={onFavChanged} />
-						<FontAwesomeIcon
-							className="cursor-pointer text-green-500"
-							icon={faDownload}
-						/>
-						<Button variant="outlined" className="flex items-center gap-3">
-							<FontAwesomeIcon className="cursor-pointer" icon={faShareAlt} />
-							Share
-						</Button>
-					</div>
-				</DialogFooter> */}
 			</Dialog>
+
+			{/* <Drawer open={isDrawerOpen} onClose={closeDrawer} className="p-4">
+				<div className="flex flex-col">
+					<Typography variant="h5" color="blue-gray">
+						Material Tailwind
+					</Typography>
+				</div>
+			</Drawer> */}
 		</>
 	);
 };

@@ -1,22 +1,35 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "hooks/useQuery";
+import { userMailVerification } from "services/userService";
 
 const VerifyUser: React.FC = () => {
+	const navigate = useNavigate();
 
-    const navigate = useNavigate();
+	const urlParams = useQuery();
 
-    useEffect(() => {
-        const user = localStorage.getItem('user');
+	useEffect(() => {
+		const userId = urlParams.get("id");
 
-        if(!user){
-            localStorage.clear();
-            navigate("/user/login");
-        }
-    })
+		if (userId) {
+			userMailVerification(userId)
+				.then((res) => {
+					console.log(res);
+					const user = localStorage.getItem("user");
 
-    return ( 
-        <></>
-    );
-}
- 
+					if (res.status && user) {
+						navigate("/app/photos");
+					} else {
+						navigate("/user/login");
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		}
+	}, []);
+
+	return <></>;
+};
+
 export default VerifyUser;
