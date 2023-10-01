@@ -42,12 +42,12 @@ const Register: React.FC = () => {
 	const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
 	const [formData] = useState<register_user>({
-		first_name: "V",
-		last_name: "R",
-		email: "rathinamvr1@gmail.com",
+		first_name: "",
+		last_name: "",
+		email: "",
 		dob: new Date(),
-		password: "Q!1234567890",
-		confirm_password: "Q!1234567890",
+		password: "",
+		confirm_password: "",
 		isTermsAccepted: false,
 	});
 
