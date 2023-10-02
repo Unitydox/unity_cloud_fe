@@ -12,6 +12,7 @@ import { getSignedUrl, uploadProfilePhoto } from "services/photoService";
 import Avatar from "components/Avatar";
 import { CameraIcon } from "@heroicons/react/24/solid";
 import { toast } from "react-hot-toast";
+import { setUserData } from "features/user/userDetails";
 
 const validationSchema = Yup.object({
 	first_name: Yup.string().required("Required").max(64, "Maximum length is 64"),
@@ -53,7 +54,7 @@ const Profile: React.FC = () => {
 
 	useEffect(() => {
 		setLoading(true);
-
+		
 		getUserDetails(userData.uuid)
 			.then((res) => {
 				if (res.status) {
@@ -95,7 +96,7 @@ const Profile: React.FC = () => {
 					.then((res) => {
 						if (res.status) {
 							setLoading(true);
-							dispatch(userData(res.data));
+							dispatch(setUserData(res.data));
 						} else {
 							toast.error(res.message);
 						}

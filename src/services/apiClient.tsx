@@ -17,12 +17,13 @@ const clearAndLogout = () => {
 
 // Function to refresh the access token
 const refreshAccessToken = async () => {
-	const user_data = localStorage.getItem("user");
+	const userData = localStorage.getItem("user");
+	const tokens = localStorage.getItem("tokens");
 
-	if (!user_data) clearAndLogout();
+	if (!userData || !tokens) clearAndLogout();
 	else{
-		const parsed_data = JSON.parse(user_data);
-		const refreshToken = parsed_data.tokens.refresh.token;
+		const parsedData = JSON.parse(tokens);
+		const refreshToken = parsedData.refresh.token;
 	
 		const response = await axios.post(
 			`${config.api_url}/users/refresh-token`,
@@ -41,11 +42,11 @@ const refreshAccessToken = async () => {
 // Add request interceptor
 apiClient.interceptors.request.use(async (config) => {
 	// Do something before request is sent
-	const user_data = localStorage.getItem("user");
-	if (user_data) {
-		const parsed_data = JSON.parse(user_data);
+	const tokens = localStorage.getItem("tokens");
+	if (tokens) {
+		const parsedData = JSON.parse(tokens);
 
-		config.headers.Authorization = `Bearer ${parsed_data.tokens.access.token}`;
+		config.headers.Authorization = `Bearer ${parsedData.access.token}`;
 	}
 	return config;
 });
@@ -83,15 +84,9 @@ apiClient.interceptors.response.use(
 
 				isRefreshing = false;
 
-				const local_data = localStorage.getItem("user") || '';
+				localStorage.removeItem("tokens");
 
-				const parsed_data = JSON.parse(local_data);
-
-				parsed_data.tokens = newAccessToken;
-
-				localStorage.removeItem("user");
-
-				localStorage.setItem("user", JSON.stringify(parsed_data));
+				localStorage.setItem("tokens", JSON.stringify(newAccessToken));
 
 				// Update the token in the original request
 				if(originalRequest?.headers?.Authorization)

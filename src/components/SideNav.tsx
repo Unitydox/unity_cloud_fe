@@ -1,15 +1,14 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux' 
-import { selectMenu } from '../features/sideMenu/sideMenuSlice'
+import { useSelector, useDispatch } from "react-redux";
+import { selectMenu } from "features/sideMenu/sideMenuSlice";
+import Storage from "./Storage";
 import {
 	Card,
 	Typography,
 	List,
 	ListItem,
 	ListItemPrefix,
-	ListItemSuffix,
-	Chip,
 	Accordion,
 	AccordionHeader,
 	AccordionBody,
@@ -25,11 +24,8 @@ import {
 	AlbumIcon,
 	ArchiveIcon,
 	PhotosIcon,
-	SearchIcon,
-	SharingIcon,
 	StarIcon,
 	TrashIcon,
-	UtilitiesIcon,
 } from "components/icons";
 
 interface IconProps {
@@ -46,25 +42,42 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-	{ name: "Photos", icon: PhotosIcon, route: "/app/photos", state: { type: '' } },
-	// { name: "Explore", icon: SearchIcon, route: "/app/explore" },
-	// { name: "Sharing", icon: SharingIcon, route: "/app/sharing" },
-	{ name: "Favourites", icon: StarIcon, route: "/app/photos?type=favourites", state: { type: 'favourites' } },
+	{
+		name: "Photos",
+		icon: PhotosIcon,
+		route: "/app/photos",
+		state: { type: "" },
+	},
+	{
+		name: "Favourites",
+		icon: StarIcon,
+		route: "/app/photos?type=favourites",
+		state: { type: "favourites" },
+	},
 	{ name: "Albums", icon: AlbumIcon, route: "/app/albums" },
-	// { name: "Utilities", icon: UtilitiesIcon, route: "/app/utilities" },
-	{ name: "Archive", icon: ArchiveIcon, route: "/app/photos?type=archive", state: { type: 'archive' } },
-	{ name: "Bin", icon: TrashIcon, route: "/app/photos?type=delete", state: { type: 'delete' } },
+	{
+		name: "Archive",
+		icon: ArchiveIcon,
+		route: "/app/photos?type=archive",
+		state: { type: "archive" },
+	},
+	{
+		name: "Bin",
+		icon: TrashIcon,
+		route: "/app/photos?type=delete",
+		state: { type: "delete" },
+	},
 ];
 
 function SideNav() {
 	const navigate = useNavigate();
 
 	const dispatch = useDispatch();
-	const selected_menu = useSelector(state => state.sideMenu.selected);
+	const selectedMenu = useSelector((state) => state.sideMenu.selected);
+	const userData = useSelector((state) => state.userDetails.data);
+	const planDetails = useSelector((state) => state.userDetails.plan);
 
 	// const [open, setOpen] = useState<string>("");
-
-	useEffect(() => console.log(selected_menu), [selected_menu]);
 
 	const handleOpen = (value: number, parent_index: number, menu: MenuItem) => {
 		const open_index =
@@ -80,7 +93,7 @@ function SideNav() {
 		const open_index =
 			parent_index > -1 ? `${value}-${parent_index}` : `${value}`;
 
-		return selected_menu === open_index;
+		return selectedMenu === open_index;
 	};
 
 	const renderMenuItems = (items: MenuItem[], parent_index: number = -1) => {
@@ -145,10 +158,21 @@ function SideNav() {
 
 	return (
 		<Card
-			className="w-full max-w-[4rem] overflow-y-auto rounded-none rounded-r-xl bg-gray-100/50 px-0 pe-0 md:max-w-[18rem]"
+			className="w-full max-w-[4rem] justify-between overflow-y-auto rounded-none rounded-r-xl bg-gray-100/50 px-0 pe-0 md:max-w-[18rem]"
 			shadow={false}
 		>
-			<List className="w-full min-w-full px-0">{renderMenuItems(menuItems)}</List>
+			<List className="w-full min-w-full justify-between px-0">
+				{renderMenuItems(menuItems)}
+			</List>
+
+			<div className="sticky bottom-0 hidden md:block">
+				<Storage
+					total={planDetails?.total_size || 0}
+					totalFormatted={planDetails?.total_size_formatted || 0}
+					used={planDetails?.used_size || 0}
+					usedFormatted={planDetails?.used_size_formatted || 0}
+				/>
+			</div>
 		</Card>
 	);
 }

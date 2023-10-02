@@ -173,7 +173,13 @@ function Header() {
 		setUploadedFile(null);
 
 		inputFileRef.current.value = null;
+
+		updateStorageDetails();
 	};
+
+	const updateStorageDetails = () => {
+		
+	}
 
 	useEffect(() => {
 		if (userData?.profile_thumb_url) {

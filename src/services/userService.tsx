@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 import { getUrlQueryFromObj } from "utils";
-import { IRegisterUser, IThirdPartyRegisterUser, ITokens, IProfileForm } from 'models/user';
+import { IRegisterUser, IThirdPartyRegisterUser, ITokensHttp, IProfileForm } from 'models/user';
 
 const base_path = '/users';
 
@@ -34,7 +34,7 @@ const registerOrLogin = async (formData: IThirdPartyRegisterUser) => {
   }
 }
 
-const userLogout = async (token_data: ITokens) => {
+const userLogout = async (token_data: ITokensHttp) => {
   try {
     const response = await apiClient.post(`${base_path}/logout`, token_data);   
     return response.data;

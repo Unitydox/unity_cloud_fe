@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
 	userLogin,
 	userLogout,
@@ -9,8 +9,8 @@ import {
 } from "../services/userService";
 import { toast } from "react-hot-toast";
 import { googleLogout } from "@react-oauth/google";
-import { IRegisterUser, IThirdPartyRegisterUser, ILogin, IUserDetails } from "models/user";
-import { userData } from "features/user/userDetails";
+import { IRegisterUser, IThirdPartyRegisterUser, ILogin, IUserDetails, ITokens, IPlanDetails } from "models/user";
+import { setPlan, setUserData, setToken } from "features/user/userDetails";
 
 export const useAuth = () => {
 	const navigate = useNavigate();
@@ -18,6 +18,7 @@ export const useAuth = () => {
 	const dispatch = useDispatch();
 
 	const [user, setUser] = useState<IUserDetails | null>(null);
+	const tokenData = useSelector((state) => state.userDetails.token);
 
 	useEffect(() => {
 		const storedUser = localStorage.getItem("user");
@@ -26,10 +27,13 @@ export const useAuth = () => {
 		}
 	}, []);
 
-	const setUserData = (data: IUserDetails | null) => {
+	const setUserDetails = (data: IUserDetails | null, tokens: ITokens, plan: IPlanDetails) => {
 		setUser(data);
 		localStorage.setItem("user", JSON.stringify(data));
-		dispatch(userData(data));
+		localStorage.setItem("tokens", JSON.stringify(tokens))
+		dispatch(setUserData(data));
+		dispatch(setPlan(plan));
+		dispatch(setToken(tokens));
 	};
 
 	const login = async ({ email, password }: ILogin) => {
@@ -38,8 +42,7 @@ export const useAuth = () => {
 		try {
 			const userData = await userLogin(user);
 			if (userData.status) {
-				userData.data.tokens = userData.tokens;
-				setUserData(userData.data);
+				setUserDetails(userData.data, userData.tokens, userData.data.plan_details);
 			} else {
 				toast.error(userData.response.data.message);
 			}
@@ -55,8 +58,7 @@ export const useAuth = () => {
 		try {
 			const userData = await registerUser(formData);
 			if (userData.status) {
-				userData.data.tokens = userData.tokens;
-				setUserData(userData.data);
+				setUserDetails(userData.data, userData.tokens, userData.data.plan_details);
 			} else {
 				toast.error(userData.response.data.message);
 			}
@@ -72,8 +74,7 @@ export const useAuth = () => {
 		try {
 			const userData = await registerOrLogin(formData);
 			if (userData.status) {
-				userData.data.tokens = userData.tokens;
-				setUserData(userData.data);
+				setUserDetails(userData.data, userData.tokens, userData.data.plan_details);
 			} else {
 				toast.error(userData.response.data.message);
 			}
@@ -85,14 +86,16 @@ export const useAuth = () => {
 
 	const logout = async () => {
 		try {
-			const user_data = JSON.parse(localStorage.getItem("user") || "");
-
 			await userLogout({
-				refresh_token: user_data.tokens.refresh.token,
-				access_token: user_data.tokens.access.token,
+				refresh_token: tokenData?.refresh.token,
+				access_token: tokenData?.access.token,
 			});
 			setUser(null);
 			localStorage.removeItem("user");
+			localStorage.removeItem("tokens");
+			dispatch(setUserData(null));
+			dispatch(setPlan(null));
+			dispatch(setToken(null));
 			googleLogout();
 			navigate("/");
 		} catch (error) {
