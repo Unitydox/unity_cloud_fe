@@ -9,7 +9,7 @@ import {
 	MenuList,
 	Typography,
 } from "@material-tailwind/react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { useLoading } from "contexts/LoadingContext";
 import { useFileUploadContext } from "contexts/FileUploadContext";
 import {
@@ -24,13 +24,14 @@ import {
 	EllipsisVerticalIcon,
 	TrashIcon,
 	ArchiveBoxArrowDownIcon,
-	InformationCircleIcon
+	InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { faTrashArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ActionDialog from "components/ActionDialog";
 import NothingToSee from "components/NothingToSee";
+import moment from "moment";
 
 interface all_dates {
 	date: string;
@@ -71,65 +72,68 @@ const PhotosGallery = () => {
 		getDistinctDates({
 			type: location.state?.type,
 			status: location.state?.type,
-			searchText: search_text
+			searchText: search_text,
 		})
-			.then((res) => {
-				setDays(
-					res.data.map((d: { img_created_date: string; formatted_date: string }) => ({
+			.then(async (res) => {
+				const daysData = res.data.map(
+					(d: { img_created_date: string; formatted_date: string }) => ({
 						date: d.img_created_date,
 						formatted_date: d.formatted_date,
 						isAllSelected: false,
 						selectedCount: 0,
-					})),
+					}),
 				);
-			})
-			.finally(() => setLoading(false));
-	};
 
-	useEffect(() => {
-		if (days.length > 0) {
-			for (const day of days) {
-				fetchAndPushImages(day);
-			}
-		} else {
-			setLoading(false);
-		}
-	}, [days]);
+				setDays(daysData);
 
-	const fetchAndPushImages = (day: all_dates) => {
-		fetchImages({
-			type: location.state?.type,
-			status: location.state?.type,
-			date: day.formatted_date,
-			searchText: search_text
-		})
-			.then((res) => {
-				setLoading(false);
-
-				if (res.data.length) {
-					const imagesMap = new Map<string, ImageData>();
-					for (const img of res.data) {
-						img.isImageSelected = false;
-						imagesMap.set(img.uuid, img);
-					}
-
-					setImageDataMap((prevMap) => {
-						const newMap = new Map(prevMap);
-						newMap.set(day.formatted_date, {
-							...day,
-							images: imagesMap,
-						});
-						return newMap;
-					});
+				for (const day of daysData) {
+					await fetchAndPushImages(day);
 				}
 			})
 			.finally(() => setLoading(false));
 	};
 
+	// useEffect(() => {
+	// 	if (days.length > 0) {
+	// 		for (const day of days) {
+	// 			fetchAndPushImages(day);
+	// 		}
+	// 	} else {
+	// 		setLoading(false);
+	// 	}
+	// }, [days]);
+
+	const fetchAndPushImages = async (day: all_dates) => {
+		const result = await fetchImages({
+			type: location.state?.type,
+			status: location.state?.type,
+			date: day.formatted_date,
+			searchText: search_text,
+		});
+
+		if (result.status && result.data.length > 0) {
+			const imagesMap = new Map<string, ImageData>();
+			for (const img of result.data) {
+				img.isImageSelected = false;
+				imagesMap.set(img.uuid, img);
+			}
+
+			setImageDataMap((prevMap) => {
+				const newMap = new Map(prevMap);
+				newMap.set(day.formatted_date, {
+					...day,
+					images: imagesMap,
+				});
+				return newMap;
+			});
+		}
+
+		setLoading(false);
+	};
+
 	useEffect(() => {
-		console.log({uploadedFile});
+		console.log({ uploadedFile });
 		if (uploadedFile) {
-			
 			fetchDistinctDates();
 		}
 	}, [uploadedFile]);
@@ -241,22 +245,21 @@ const PhotosGallery = () => {
 	};
 
 	const handleBulkAction = (type: string) => {
-		
-		let toastMsg = '';
+		let toastMsg = "";
 
 		switch (type) {
-			case 'delete':
-				toastMsg = 'Deleting Images...';
+			case "delete":
+				toastMsg = "Deleting Images...";
 				break;
-		
-			case 'archive':
-				toastMsg = 'Archiving Images...';
+
+			case "archive":
+				toastMsg = "Archiving Images...";
 				break;
-		
-			case 'restore':
-				toastMsg = 'Restoring Images...';
+
+			case "restore":
+				toastMsg = "Restoring Images...";
 				break;
-		
+
 			default:
 				break;
 		}
@@ -265,23 +268,25 @@ const PhotosGallery = () => {
 
 		bulkUpdateStatus({
 			uuid: getSelectedItems(modalActionDate),
-			type: (type === 'restore') ? 'active' : type,
-		}).then((res) => {
-			setIsWarningModalOpen(false);
-			setModalActionDate("");
-			setModalActionType("");
-			if (res.status) {
-				fetchDistinctDates();
-				toast.success(res.message, { id: toastID, duration: 3000 });
-			} else {
-				toast.error(res.message, { id: toastID, duration: 3000 });
-			}
-		}).finally(() => {
-			setTimeout(() => {
-				toast.dismiss(toastID);
-			}, 800);
-		});
-	}
+			type: type === "restore" ? "active" : type,
+		})
+			.then((res) => {
+				setIsWarningModalOpen(false);
+				setModalActionDate("");
+				setModalActionType("");
+				if (res.status) {
+					fetchDistinctDates();
+					toast.success(res.message, { id: toastID, duration: 3000 });
+				} else {
+					toast.error(res.message, { id: toastID, duration: 3000 });
+				}
+			})
+			.finally(() => {
+				setTimeout(() => {
+					toast.dismiss(toastID);
+				}, 800);
+			});
+	};
 
 	// const bulkToggleFromAlbum = (formattedDate: string) => {
 	// 	const toastID = toast.loading("Removing from album...");
@@ -291,128 +296,128 @@ const PhotosGallery = () => {
 
 	return (
 		<section className="h-full">
-			{
-				(!loading && Array.from(imageDataMap.entries()).length == 0) && 
-				<NothingToSee />	
-			}
-			{Array.from(imageDataMap.entries()).map(
-				([formattedDate, day]) =>
-					day.images &&
-					day.images.size > 0 && (
-						<div key={formattedDate}>
-							<div className="flex flex-row items-center justify-between">
-								<Typography variant="h4" color="blue">
-									{day.date}
-								</Typography>
+			{!loading && Array.from(imageDataMap.entries()).length == 0 && (
+				<NothingToSee />
+			)}
+			{Array.from(imageDataMap.entries())
+				.map(
+					([formattedDate, day]) =>
+						day.images &&
+						day.images.size > 0 && (
+							<div key={formattedDate}>
+								<div className="flex flex-row items-center justify-between">
+									<Typography variant="h4" color="blue">
+										{day.date}
+									</Typography>
 
-								<div className="me-1 flex flex-row items-center justify-between gap-2">
-									<Checkbox
-										checked={day.isAllSelected}
-										onChange={() => toggleSelectAll(formattedDate)}
-										className="h-5 w-5 rounded-full border-primary transition-all hover:scale-110 hover:before:opacity-0"
-										containerProps={{ className: "p-0" }}
-									/>
-									{day.selectedCount > 0 && (
-										<Menu>
-											<MenuHandler>
-												<EllipsisVerticalIcon className="h-5 w-5 cursor-pointer" />
-											</MenuHandler>
-											<MenuList>
-												{!type && (
-													<>
-														{/* <MenuItem
+									<div className="me-1 flex flex-row items-center justify-between gap-2">
+										<Checkbox
+											checked={day.isAllSelected}
+											onChange={() => toggleSelectAll(formattedDate)}
+											className="h-5 w-5 rounded-full border-primary transition-all hover:scale-110 hover:before:opacity-0"
+											containerProps={{ className: "p-0" }}
+										/>
+										{day.selectedCount > 0 && (
+											<Menu>
+												<MenuHandler>
+													<EllipsisVerticalIcon className="h-5 w-5 cursor-pointer" />
+												</MenuHandler>
+												<MenuList>
+													{!type && (
+														<>
+															{/* <MenuItem
 															className="flex flex-row items-center gap-2"
 															onClick={() => bulkToggleFromAlbum(formattedDate)}
 														>
 															<PlusIcon className="h-5 w-5 cursor-pointer" />
 															Add to album
 														</MenuItem> */}
-														<MenuItem
-															className="flex flex-row items-center gap-2"
-															onClick={() =>
-																handleBulkActionWarn("archive", formattedDate)
-															}
-														>
-															<ArchiveBoxArrowDownIcon className="h-5 w-5 cursor-pointer" />
-															Archive selection
-														</MenuItem>
-														<MenuItem
-															className="flex flex-row items-center gap-2"
-															onClick={() =>
-																handleBulkActionWarn("delete", formattedDate)
-															}
-														>
-															<TrashIcon className="h-5 w-5 cursor-pointer" />
-															Delete selection
-														</MenuItem>
-													</>
-												)}
-												{(type === "delete" || type === "archive") && (
-													<>
-														<MenuItem
-															className="flex flex-row items-center gap-2"
-															onClick={() =>
-																handleBulkActionWarn("restore", formattedDate)
-															}
-														>
-															<FontAwesomeIcon
-																icon={faTrashArrowUp}
-																size="lg"
-																className="cursor-pointer text-green-500"
-															/>
-															Restore selection
-														</MenuItem>
-													</>
-												)}
-											</MenuList>
-										</Menu>
-									)}
+															<MenuItem
+																className="flex flex-row items-center gap-2"
+																onClick={() =>
+																	handleBulkActionWarn("archive", formattedDate)
+																}
+															>
+																<ArchiveBoxArrowDownIcon className="h-5 w-5 cursor-pointer" />
+																Archive selection
+															</MenuItem>
+															<MenuItem
+																className="flex flex-row items-center gap-2"
+																onClick={() =>
+																	handleBulkActionWarn("delete", formattedDate)
+																}
+															>
+																<TrashIcon className="h-5 w-5 cursor-pointer" />
+																Delete selection
+															</MenuItem>
+														</>
+													)}
+													{(type === "delete" || type === "archive") && (
+														<>
+															<MenuItem
+																className="flex flex-row items-center gap-2"
+																onClick={() =>
+																	handleBulkActionWarn("restore", formattedDate)
+																}
+															>
+																<FontAwesomeIcon
+																	icon={faTrashArrowUp}
+																	size="lg"
+																	className="cursor-pointer text-green-500"
+																/>
+																Restore selection
+															</MenuItem>
+														</>
+													)}
+												</MenuList>
+											</Menu>
+										)}
+									</div>
+								</div>
+								<div className="flex flex-wrap">
+									{Array.from(day.images?.values() || []).map((img) => (
+										<div
+											className="relative w-1/2 overflow-hidden rounded p-2 text-center md:w-1/3 xl:w-1/5 2xl:w-1/6"
+											key={img.uuid}
+										>
+											<ImageCard
+												src={img.thumbnail_url}
+												full_url={img.file_temp_url}
+												photo_id={img.uuid}
+												photo_primary_id={img.id}
+												isFavourite={img.favourite === 1}
+												isImageSelected={!!img.isImageSelected}
+												onImageSelected={() =>
+													onImgSelectionChange(img, formattedDate)
+												}
+												viewType={type}
+												onLikeChange={onLikesChange}
+												onStatusChange={() =>
+													onStatusChange(formattedDate, img.uuid)
+												}
+											/>
+										</div>
+									))}
 								</div>
 							</div>
-							<div className="flex flex-wrap">
-								{Array.from(day.images?.values() || []).map((img) => (
-									<div
-										className="relative w-1/2 overflow-hidden rounded p-2 text-center md:w-1/3 xl:w-1/5 2xl:w-1/6"
-										key={img.uuid}
-									>
-										<ImageCard
-											src={img.thumbnail_url}
-											full_url={img.file_temp_url}
-											photo_id={img.uuid}
-											photo_primary_id={img.id}
-											isFavourite={img.favourite === 1}
-											isImageSelected={!!img.isImageSelected}
-											onImageSelected={() =>
-												onImgSelectionChange(img, formattedDate)
-											}
-											viewType={type}
-											onLikeChange={onLikesChange}
-											onStatusChange={() =>
-												onStatusChange(formattedDate, img.uuid)
-											}
-										/>
-									</div>
-								))}
-							</div>
-						</div>
-					),
-			)}
-			{
-				(type === 'delete') && 
-				<Typography variant="small" className="flex flex-row items-center justify-center text-gray-500">
+						),
+				)}
+			{type === "delete" && (
+				<Typography
+					variant="small"
+					className="sticky bottom-[-1rem] flex flex-row items-center justify-center rounded-t-2xl text-gray-500 backdrop-blur-sm"
+				>
 					<InformationCircleIcon className="mr-2 h-4 w-4 text-red-500" />
-					Photos will be permanently deleted after 30 days.		
+					Photos will be permanently deleted after 30 days.
 				</Typography>
-			}
+			)}
 
 			<ActionDialog
 				isOpen={isWarningModalOpen}
 				headerContent={modalActionType}
 				bodyContent={`Are you sure you want to ${modalActionType} these photos from ${modalActionDate}?`}
 				confirmBtn={modalActionType}
-				onConfirm={() =>
-					handleBulkAction(modalActionType)
-				}
+				onConfirm={() => handleBulkAction(modalActionType)}
 				cancelBtn={"Cancel"}
 				onCancel={() => setIsWarningModalOpen(false)}
 			></ActionDialog>

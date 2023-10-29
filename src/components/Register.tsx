@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Input,
 	Button,
@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	Spinner,
 } from "@material-tailwind/react";
+import TermsAndConditions from "./TermsAndConditions";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +41,7 @@ const Register: React.FC = () => {
 
 	const [showPassword, setShowPassword] = useState<boolean>(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+	const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
 
 	const [formData] = useState<register_user>({
 		first_name: "",
@@ -108,10 +110,10 @@ const Register: React.FC = () => {
 				>
 					<img src={Logo} alt="logo-picture" />
 				</CardHeader>
-				<CardBody className="mx-auto flex h-full items-center pt-0">
+				<CardBody className="mx-auto flex h-full w-3/4 items-center pt-0">
 					{!waitingForVerification ? (
-						<div className="flex flex-col items-center">
-							<div className="">
+						<div className="flex w-full flex-col items-center">
+							<div className="w-full">
 								<Typography variant="h4">Sign Up</Typography>
 
 								<Typography variant="small" className="mt-4">
@@ -175,7 +177,7 @@ const Register: React.FC = () => {
 										<form className="mt-8" onSubmit={handleSubmit}>
 											<div className="flex max-h-[240px] flex-col space-y-4 overflow-y-auto">
 												<div className="flex flex-col gap-3 sm:flex-row">
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type="text"
 															placeholder="Enter your First Name"
@@ -186,9 +188,8 @@ const Register: React.FC = () => {
 															onChange={handleChange}
 															onBlur={handleBlur}
 															error={
-																errors.first_name &&
-																touched.first_name &&
-																errors.first_name
+																!!(errors.first_name &&
+																touched.first_name)
 															}
 															success={!errors.first_name && touched.first_name}
 														/>
@@ -198,7 +199,7 @@ const Register: React.FC = () => {
 																errors.first_name}
 														</Typography>
 													</div>
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type="text"
 															placeholder="Enter your Last Name"
@@ -209,9 +210,8 @@ const Register: React.FC = () => {
 															onChange={handleChange}
 															onBlur={handleBlur}
 															error={
-																errors.last_name &&
-																touched.last_name &&
-																errors.last_name
+																!!(errors.last_name &&
+																touched.last_name)
 															}
 															success={!errors.last_name && touched.last_name}
 														/>
@@ -223,7 +223,7 @@ const Register: React.FC = () => {
 													</div>
 												</div>
 												<div className="flex flex-col gap-3 sm:flex-row">
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type="text"
 															placeholder="Enter your email address"
@@ -234,7 +234,7 @@ const Register: React.FC = () => {
 															onChange={handleChange}
 															onBlur={handleBlur}
 															error={
-																errors.email && touched.email && errors.email
+																!!(errors.email && touched.email)
 															}
 															success={!errors.email && touched.email}
 														/>
@@ -242,7 +242,7 @@ const Register: React.FC = () => {
 															{errors.email && touched.email && errors.email}
 														</Typography>
 													</div>
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type="date"
 															placeholder="Select your DOB"
@@ -252,8 +252,8 @@ const Register: React.FC = () => {
 															value={values.dob}
 															onChange={handleChange}
 															onBlur={handleBlur}
-															error={errors.dob && touched.dob && errors.dob}
-															success={!errors.dob && touched.dob}
+															error={!!(errors.dob && touched.dob)}
+															success={!!(errors.dob && touched.dob)}
 														/>
 														<Typography variant="small" color="red">
 															{errors.dob && touched.dob && errors.dob}
@@ -261,7 +261,7 @@ const Register: React.FC = () => {
 													</div>
 												</div>
 												<div className="flex flex-col gap-3 sm:flex-row">
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type={showPassword ? "text" : "password"}
 															placeholder="Enter your Password"
@@ -285,9 +285,8 @@ const Register: React.FC = () => {
 															onChange={handleChange}
 															onBlur={handleBlur}
 															error={
-																errors.password &&
-																touched.password &&
-																errors.password
+																!!(errors.password &&
+																touched.password)
 															}
 															success={!errors.password && touched.password}
 														/>
@@ -298,7 +297,7 @@ const Register: React.FC = () => {
 																errors.password}
 														</Typography> */}
 													</div>
-													<div className="py-2">
+													<div className="w-1/2 py-2">
 														<Input
 															type={showConfirmPassword ? "text" : "password"}
 															placeholder="Confirm Password"
@@ -322,9 +321,8 @@ const Register: React.FC = () => {
 															onChange={handleChange}
 															onBlur={handleBlur}
 															error={
-																errors.confirm_password &&
-																touched.confirm_password &&
-																errors.confirm_password
+																!!(errors.confirm_password &&
+																touched.confirm_password)
 															}
 															success={
 																!errors.confirm_password &&
@@ -359,6 +357,7 @@ const Register: React.FC = () => {
 															<a
 																href="#"
 																className="font-medium transition-colors hover:text-gray-900"
+																onClick={() => setIsTermsOpen(true)}
 															>
 																&nbsp;Terms and Conditions
 															</a>
@@ -402,6 +401,13 @@ const Register: React.FC = () => {
 					)}
 				</CardBody>
 			</Card>
+			{
+				isTermsOpen && 
+				<TermsAndConditions 
+					isOpen={isTermsOpen} 
+					setIsOpen={setIsTermsOpen} 
+				/>
+			}
 		</div>
 	);
 };

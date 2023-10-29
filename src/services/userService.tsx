@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 import { getUrlQueryFromObj } from "utils";
-import { IRegisterUser, IThirdPartyRegisterUser, ITokensHttp, IProfileForm } from 'models/user';
+import { IRegisterUser, IThirdPartyRegisterUser, ITokensHttp, IProfileForm, IChangePassword } from 'models/user';
 
 const base_path = '/users';
 
@@ -84,7 +84,17 @@ const updateUserDetails = async (formData: IProfileForm) => {
   }
 }
 
+const changePassword = async (formData: IChangePassword ) => {
+  try {
+    const response = await apiClient.put(`${base_path}/change-password`, formData);   
+    return response.data;
+  } catch(error) {
+    // throw error; 
+    return error;
+  }
+}
+
 export {
   userLogin, userLogout, registerUser, registerOrLogin, userMailVerification, isUserVerified, 
-  getUserDetails, updateUserDetails
+  getUserDetails, updateUserDetails, changePassword
 }

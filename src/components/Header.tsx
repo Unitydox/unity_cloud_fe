@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { selectMenu } from "features/sideMenu/sideMenuSlice";
 import { updateSearchText } from "features/globalSearch/imageSearchSlice";
+import ChangePassword from "./ChangePassword";
 import {
 	Navbar,
 	Typography,
@@ -19,7 +20,8 @@ import {
 	QuestionMarkCircleIcon,
 	MagnifyingGlassIcon,
 	UserCircleIcon,
-	XMarkIcon
+	XMarkIcon, 
+	LockClosedIcon
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import { useFileUploadContext } from "contexts/FileUploadContext";
@@ -46,6 +48,7 @@ function Header() {
 	const [searchText, setSearchText] = useState<string>("");
 	const [profileUrl, setProfileUrl] = useState<string | undefined>();
 	const [isUploading, setIsUploading] = useState<boolean>(false);
+	const [isUpdatePwdOpen, setIsUpdatePwdOpen] = useState<boolean>(false);
 
 	const redirectToHome = () => {
 		navigate("/app/photos");
@@ -167,10 +170,10 @@ function Header() {
 
 			setTimeout(() => {
 				toast.dismiss(fileUploadToast);
-			}, 800);
+				setUploadedFile(null);
+			}, 1000);
 
 		}
-		setUploadedFile(null);
 
 		inputFileRef.current.value = null;
 
@@ -195,6 +198,7 @@ function Header() {
 	}, [userData?.profile_thumb_url]);
 
 	return (
+	<>
 		<Navbar className="relative z-10 h-auto !max-w-full px-4 py-3">
 			<div className="flex flex-wrap items-center justify-between gap-y-4 text-blue-gray-900">
 				<img
@@ -287,6 +291,16 @@ function Header() {
 								</Typography>
 							</MenuItem>
 							<hr className="my-2 border-blue-gray-50" />
+							<MenuItem
+								className="flex items-center gap-2"
+								onClick={() => setIsUpdatePwdOpen(true)}
+							>
+								<LockClosedIcon className="h-5 w-5" />
+								<Typography variant="small" className="font-normal">
+									Change Password
+								</Typography>
+							</MenuItem>
+							<hr className="my-2 border-blue-gray-50" />
 							<MenuItem className="flex items-center gap-2 " onClick={logout}>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -311,6 +325,9 @@ function Header() {
 				</div>
 			</div>
 		</Navbar>
+
+		<ChangePassword isOpen={isUpdatePwdOpen} setIsOpen={setIsUpdatePwdOpen} />
+	</>
 	);
 }
 

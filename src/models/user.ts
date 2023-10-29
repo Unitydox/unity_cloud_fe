@@ -73,3 +73,9 @@ export interface ILogin {
 	email: string;
 	password: string;
 }
+
+export interface IChangePassword {
+	current_password: string;
+	new_password: string;
+	new_password_conf: string;
+}
