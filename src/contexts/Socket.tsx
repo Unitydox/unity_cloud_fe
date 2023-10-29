@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import config from "../config";
 
 // "undefined" means the URL will be computed from the `window.location` object
-const URL = config.env === "prod" ? undefined : `${config.api_url}`;
+const URL = config.env === "production" ? undefined : `${config.api_url}`;
 
 const user_data = localStorage.getItem("user");
 

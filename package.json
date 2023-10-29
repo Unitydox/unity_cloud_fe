@@ -7,8 +7,8 @@
     "name": "VR"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "cross-env NODE_ENV=development vite",
+    "build": "cross-env NODE_ENV=production vite build",
     "build_a": "tsc && vite build",
     "serve": "vite preview",
     "test": "vitest",
@@ -27,6 +27,7 @@
     "@react-oauth/google": "^0.11.1",
     "@reduxjs/toolkit": "^1.9.5",
     "axios": "^1.4.0",
+    "cross-env": "^7.0.3",
     "file-saver": "^2.0.5",
     "formik": "^2.4.3",
     "moment": "^2.29.4",
